@@ -34,7 +34,14 @@ public class TileBehaviour : MonoBehaviour
 
     public bool CanTileMove(Vector2Int endPos)
     {
-        //Check it in the board
+        if (!TetrisBoardController.Instance.IsInBounds(endPos))
+        {
+            return false;
+        }
+        if (!TetrisBoardController.Instance.IsPosEmpty(endPos))
+        {
+            return false;
+        }
         return true;
     }
 
@@ -42,7 +49,7 @@ public class TileBehaviour : MonoBehaviour
     {
         if (Coordinates.y >= 20) return false;
 
-        //Set position occupy in the board
+        TetrisBoardController.Instance.OccupyPos(Coordinates, this);
         return true;
     }
 

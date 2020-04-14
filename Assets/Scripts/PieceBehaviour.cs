@@ -24,14 +24,15 @@ public class PieceBehaviour : MonoBehaviour
 
     #region Global variables
 
-    //Have to be got from the board script
     float lockedLimitTime;
-    public Vector2Int spawnLocation;
+    Vector2Int spawnLocation;
 
     #endregion
 
     void Awake()
     {
+        InitializeGlobalVariables();
+
         rotationIndex = 0;
         downLimitReached = locked = false;
         moved = true;
@@ -77,9 +78,9 @@ public class PieceBehaviour : MonoBehaviour
 
     public bool CanPieceMove(Vector2Int movement)
     {
-        for(int i = 0; i < tiles.Length; i++)
+        for (int i = 0; i < tiles.Length; i++)
         {
-            if(!tiles[i].CanTileMove(movement + tiles[i].Coordinates))
+            if (!tiles[i].CanTileMove(movement + tiles[i].Coordinates))
             {
                 return false;
             }
@@ -106,7 +107,7 @@ public class PieceBehaviour : MonoBehaviour
 
     public bool AnyTilesLeft()
     {
-        for(int i = 0; i < tiles.Length; i++)
+        for (int i = 0; i < tiles.Length; i++)
         {
             if (tiles[i] != null) return true;
         }
@@ -118,7 +119,7 @@ public class PieceBehaviour : MonoBehaviour
     {
         bool canMove = CanPieceMove(movement);
 
-        if(!canMove)
+        if (!canMove)
         {
             if (movement == Vector2Int.down) SetPiece();
             return false;
@@ -140,7 +141,7 @@ public class PieceBehaviour : MonoBehaviour
         rotationIndex += clockwise ? 1 : -1;
         rotationIndex = Mod(rotationIndex, 4);
 
-        for(int i = 0; i < tiles.Length; i++)
+        for (int i = 0; i < tiles.Length; i++)
         {
             tiles[i].RotateTile(tiles[0].Coordinates, clockwise);
         }
@@ -166,12 +167,12 @@ public class PieceBehaviour : MonoBehaviour
 
         bool movePossible = false;
 
-        for(int testIndex = 0; testIndex < 5; testIndex++)
+        for (int testIndex = 0; testIndex < 5; testIndex++)
         {
             offsetVal1 = currentOffsetData[testIndex, oldRotationIndex];
             offsetVal2 = currentOffsetData[testIndex, newRotationIndex];
             endOffset = offsetVal1 - offsetVal2;
-            if(CanPieceMove(endOffset))
+            if (CanPieceMove(endOffset))
             {
                 movePossible = true;
                 break;
@@ -185,21 +186,27 @@ public class PieceBehaviour : MonoBehaviour
 
     public void SetPiece()
     {
-        for(int i = 0; i < tiles.Length; i++)
+        for (int i = 0; i < tiles.Length; i++)
         {
-            if(!tiles[i].SetTile())
+            if (!tiles[i].SetTile())
             {
-                //Game over
+                TetrisBoardController.Instance.GameOver(tiles);
                 return;
             }
         }
-        //Check lines to clear
+        TetrisBoardController.Instance.CheckLinesToClear();
         this.enabled = false;
+    }
+
+    void InitializeGlobalVariables()
+    {
+        lockedLimitTime = TetrisBoardController.Instance.lockedLimitTime;
+        spawnLocation = TetrisBoardController.Instance.spawnPos;
     }
 
     public void DropPiece(bool hardDrop = false)
     {
-        if(hardDrop)
+        if (hardDrop)
         {
             while (MovePiece(Vector2Int.down)) { }
         }
