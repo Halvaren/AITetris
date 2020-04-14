@@ -24,6 +24,8 @@ public class TetrisBoardController : MonoBehaviour
 
     public Vector2Int spawnPos;
 
+    public UIController UIController;
+
     public int linesToLevelUp = 10;
     public int[] possibleScores;
 
@@ -57,6 +59,7 @@ public class TetrisBoardController : MonoBehaviour
         board = new TileBehaviour[boardWidth, boardHeight];
         level = 1;
         linesCleared = score = 0;
+        UpdateUI();
 
         StartCoroutine(TetrisRandomGenerator.Instance.FillBags());
 
@@ -69,7 +72,7 @@ public class TetrisBoardController : MonoBehaviour
 
     void Update()
     {
-        if(startedGame)
+        if (startedGame)
         {
             Rotation();
             HoritzontalMovement();
@@ -118,7 +121,7 @@ public class TetrisBoardController : MonoBehaviour
 
     void VerticalMovement()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             currentPiece.DropPiece(true);
         }
@@ -154,7 +157,7 @@ public class TetrisBoardController : MonoBehaviour
 
     public bool IsPosEmpty(Vector2Int position)
     {
-        if(position.y >= 20)
+        if (position.y >= 20)
         {
             return true;
         }
@@ -172,10 +175,10 @@ public class TetrisBoardController : MonoBehaviour
     {
         List<int> linesToClear = new List<int>();
 
-        for(int i = 0; i < boardHeight; i++)
+        for (int i = 0; i < boardHeight; i++)
         {
             bool toClear = true;
-            for(int j = 0; j < boardWidth; j++)
+            for (int j = 0; j < boardWidth; j++)
             {
                 toClear &= board[j, i];
                 if (!toClear) break;
@@ -184,7 +187,7 @@ public class TetrisBoardController : MonoBehaviour
             if (toClear) linesToClear.Add(i);
         }
 
-        if(linesToClear.Count > 0)
+        if (linesToClear.Count > 0)
         {
             UpdateScoreLines(linesToClear.Count);
             ClearLines(linesToClear);
@@ -196,9 +199,9 @@ public class TetrisBoardController : MonoBehaviour
     void ClearLines(List<int> lineIndices)
     {
         int clearedLines = 0;
-        for(int i = lineIndices[0]; i < boardHeight; i++)
+        for (int i = lineIndices[0]; i < boardHeight; i++)
         {
-            if(lineIndices.Contains(i))
+            if (lineIndices.Contains(i))
             {
                 clearedLines++;
             }
@@ -211,7 +214,7 @@ public class TetrisBoardController : MonoBehaviour
                         board[j, i].MoveTile(Vector2Int.down * clearedLines);
                     }
 
-                    if(board[j, i - clearedLines] != null)
+                    if (board[j, i - clearedLines] != null)
                     {
                         PieceBehaviour pB = board[j, i - clearedLines].Piece;
                         pB.tiles[board[j, i - clearedLines].tileIndex] = null;
@@ -232,10 +235,19 @@ public class TetrisBoardController : MonoBehaviour
         score += possibleScores[linesCleared - 1] * level;
 
         this.linesCleared += linesCleared;
-        if(this.linesCleared > level * linesToLevelUp)
+        if (this.linesCleared > level * linesToLevelUp)
         {
             level++;
         }
+
+        UpdateUI();
+    }
+
+    void UpdateUI()
+    {
+        UIController.UpdateScoreText(score);
+        UIController.UpdateLinesText(linesCleared);
+        UIController.UpdateLevelText(level);
     }
 
     public void GameOver(TileBehaviour[] lastPieceTiles)
@@ -251,7 +263,7 @@ public class TetrisBoardController : MonoBehaviour
         WaitForSeconds timeBetweenLineRemoving = new WaitForSeconds(0.02f);
 
         PieceBehaviour pB = lastPieceTiles[0].Piece;
-        foreach(TileBehaviour tile in lastPieceTiles)
+        foreach (TileBehaviour tile in lastPieceTiles)
         {
             Destroy(tile.gameObject);
         }
@@ -261,7 +273,7 @@ public class TetrisBoardController : MonoBehaviour
 
         for (int i = boardHeight - 1; i >= 0; i--)
         {
-            for(int j = 0; j < boardWidth; j++)
+            for (int j = 0; j < boardWidth; j++)
             {
                 if (board[j, i] != null)
                 {
