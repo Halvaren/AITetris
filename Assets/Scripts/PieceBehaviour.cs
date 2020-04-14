@@ -26,7 +26,7 @@ public class PieceBehaviour : MonoBehaviour
 
     //Have to be got from the board script
     float lockedLimitTime;
-    Vector2Int spawnLocation;
+    public Vector2Int spawnLocation;
 
     #endregion
 
@@ -41,10 +41,33 @@ public class PieceBehaviour : MonoBehaviour
     {
         pieceType = newType;
         Vector2Int[] tileRelativePositions = null;
-        
-        //Get data from other script
 
-        for(int i = 0; i < tiles.Length; i++)
+        switch (pieceType)
+        {
+            case PieceType.I:
+                tileRelativePositions = TetrisData.IRelativePositions;
+                break;
+            case PieceType.J:
+                tileRelativePositions = TetrisData.JRelativePositions;
+                break;
+            case PieceType.L:
+                tileRelativePositions = TetrisData.LRelativePositions;
+                break;
+            case PieceType.O:
+                tileRelativePositions = TetrisData.ORelativePositions;
+                break;
+            case PieceType.S:
+                tileRelativePositions = TetrisData.SRelativePositions;
+                break;
+            case PieceType.T:
+                tileRelativePositions = TetrisData.TRelativePositions;
+                break;
+            case PieceType.Z:
+                tileRelativePositions = TetrisData.ZRelativePositions;
+                break;
+        }
+
+        for (int i = 0; i < tiles.Length; i++)
         {
             tiles[i].UpdatePosition(spawnLocation + tileRelativePositions[i]);
             tiles[i].InitializeTile(this, i);
@@ -135,9 +158,11 @@ public class PieceBehaviour : MonoBehaviour
     bool Offset(int oldRotationIndex, int newRotationIndex)
     {
         Vector2Int offsetVal1, offsetVal2, endOffset = Vector2Int.zero;
-        Vector2Int[,] currentOffsetData = null;
+        Vector2Int[,] currentOffsetData;
 
-        //Get offset data from other script
+        if (pieceType == PieceType.O) currentOffsetData = TetrisData.O_OFFSET_DATA;
+        else if (pieceType == PieceType.I) currentOffsetData = TetrisData.I_OFFSET_DATA;
+        else currentOffsetData = TetrisData.JLSTZ_OFFSET_DATA;
 
         bool movePossible = false;
 
