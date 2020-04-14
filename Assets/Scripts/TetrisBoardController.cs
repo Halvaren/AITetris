@@ -33,6 +33,14 @@ public class TetrisBoardController : MonoBehaviour
     private int linesCleared;
     private int score;
 
+    public bool botPlayer = true;
+    private MCTSBot bot;
+    public float initialActionTime = 10;
+    public float nextActionsTime = 1;
+    public float holesWeight;
+    public float bumpinessWeight;
+    public float linesWeight;
+
     private bool startedGame = false;
 
     private static TetrisBoardController instance;
@@ -66,18 +74,96 @@ public class TetrisBoardController : MonoBehaviour
         while (!TetrisRandomGenerator.Instance.GetBagsPrepared())
             yield return null;
 
+        if (botPlayer) StartCoroutine(BotCoroutine());
+
         currentPiece = pieceEmitter.EmitPiece();
         startedGame = true;
     }
 
+    IEnumerator BotCoroutine()
+    {
+        WaitForSeconds timerBetweenActions = new WaitForSeconds(nextActionsTime);
+
+        bot = new MCTSBot(TetrisRandomGenerator.Instance.GetNextPieces(), initialActionTime * 0.9f, 10000);
+        bot.SetWeights(holesWeight, bumpinessWeight, linesWeight);
+
+        yield return new WaitForSeconds(initialActionTime);
+
+        while (startedGame)
+        {
+            if (TetrisRandomGenerator.Instance.GetBagsPrepared()) bot.Act(currentPiece.pieceType, nextActionsTime * 0.9f);
+            yield return timerBetweenActions;
+        }
+    }
+
+    public void DoActionByBot(PieceAction action)
+    {
+        currentPiece.MovePiece(new Vector2Int(action.xCoord - currentPiece.tiles[0].Coordinates.x, 0));
+        for (int i = 0; i < action.rotationIndex; i++)
+        {
+            currentPiece.RotatePiece(true, true);
+        }
+
+        currentPiece.DropPiece(true);
+    }
+
     void Update()
     {
-        if (startedGame)
+        if (startedGame && !botPlayer)
         {
             Rotation();
             HoritzontalMovement();
             VerticalMovement();
         }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            //DebugMethod();
+        }
+    }
+
+    void DebugMethod()
+    {
+        TetrisState state = new TetrisState();
+
+        Vector2Int[] pieces = new Vector2Int[6];
+        Vector2Int[] pieces2 = new Vector2Int[6];
+
+        pieces[0].x = 0b1111111011;
+        pieces[0].y = 0;
+        pieces[1].x = 0b1011110011;
+        pieces[1].y = 1;
+        pieces[2].x = 0b0010010010;
+        pieces[2].y = 2;
+        pieces[3].x = 0b0010010011;
+        pieces[3].y = 3;
+        pieces[4].x = 0b0000010011;
+        pieces[4].y = 4;
+        pieces[5].x = 0b0000010011;
+        pieces[5].y = 5;
+
+        pieces2[0].x = 0b1111111110;
+        pieces2[0].y = 0;
+        pieces2[1].x = 0b1111111110;
+        pieces2[1].y = 1;
+        pieces2[2].x = 0b1111111110;
+        pieces2[2].y = 2;
+        pieces2[3].x = 0b1111111110;
+        pieces2[3].y = 3;
+        pieces2[4].x = 0b1111111110;
+        pieces2[4].y = 4;
+        pieces2[5].x = 0b1111111110;
+        pieces2[5].y = 5;
+
+        state.LockPiece(pieces);
+        Debug.Log(state.GetHoleCount());
+        Debug.Log(state.GetBumpiness());
+
+        state = new TetrisState();
+
+        state.LockPiece(pieces2);
+        Debug.Log(state.GetHoleCount());
+        Debug.Log(state.GetBumpiness());
     }
 
     void Rotation()
@@ -194,6 +280,8 @@ public class TetrisBoardController : MonoBehaviour
         }
 
         currentPiece = pieceEmitter.EmitPiece();
+
+        if (botPlayer) bot.AddNewPiece(TetrisRandomGenerator.Instance.GetLastNextPiece());
     }
 
     void ClearLines(List<int> lineIndices)
