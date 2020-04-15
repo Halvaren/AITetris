@@ -74,6 +74,7 @@ public class MCTSBot : TetrisBot
             foreach(MCTSNode child in currentRollingNode.children)
             {
                 float score = Rollout(child);
+                Debug.Log(score);
                 child.score += score;
                 child.n += 1;
 
@@ -105,7 +106,7 @@ public class MCTSBot : TetrisBot
         currentNode = recommendedChild;
         actualTetrisState.DoAction(nextPiece, recommendedChild.action);
 
-        Debug.Log("Rollouts: " + rollouts);
+        //Debug.Log("Rollouts: " + rollouts);
 
         TetrisBoardController.Instance.DoActionByBot(recommendedChild.action);
     }
@@ -132,7 +133,7 @@ public class MCTSBot : TetrisBot
 
     private float GetScore(TetrisState state)
     {
-        return -(holesWeight * state.GetHoleCount()) - (bumpinessWeight * state.GetBumpiness()) + (linesWeight * TetrisBoardController.Instance.possibleScores[state.GetClearedLines()]);
+        return -(holesWeight * state.GetHoleCount()) - (bumpinessWeight * state.GetBumpiness()) + (linesWeight * state.GetClearedLines());
     }
 
     public void Backpropagation(MCTSNode node, float score)
@@ -150,22 +151,20 @@ public class MCTSBot : TetrisBot
         TetrisState newState = node.state.CloneState();
 
         int nPieces = 0;
-        while(nPieces < piecesPerRollout && !newState.IsTerminal(node.currentPiece))
+
+        while (nPieces < nextPieces.Count/*nPieces < piecesPerRollout && !newState.IsTerminal(node.currentPiece)*/)
         {
             PieceModel piece;
-            if (nPieces < nextPieces.Count)
+            //if (nPieces < nextPieces.Count)
                 piece = nextPieces[nPieces];
-            else
-                piece = new PieceModel((PieceType) Random.Range(0, 6));
+            /*else
+                piece = new PieceModel((PieceType) Random.Range(0, 6));*/
 
-            newState.DoAction(piece, newState.GetRandomAction(piece));
+            newState.DoAction(piece, newState.GetRandomAction(piece), true);
             nPieces++;
         }
 
         float score = GetScore(newState);
-
-        /*Debug.Log(newState.ToString());
-        Debug.Log("Score: " + score);*/
 
         rollouts++;
 

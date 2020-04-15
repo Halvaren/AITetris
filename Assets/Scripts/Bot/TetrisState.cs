@@ -88,9 +88,13 @@ public class TetrisState
         }
     }
 
-    public void DoAction(PieceModel piece, PieceAction action)
+    public void DoAction(PieceModel piece, PieceAction action, bool aux = false)
     {
-        LockPiece(piece.DoAction(action, this));
+        piece.DoAction(action, this);
+
+        while (piece.Move(Vector2Int.down, this)) { }
+
+        LockPiece(piece.GetBinaryTiles(piece.GetCoordinates()));
     }
 
     public int GetClearedLines()
@@ -159,7 +163,7 @@ public class TetrisState
 
     public bool IsInBounds(Vector2Int binaryTile)
     {
-        if (binaryTile.x < 0 || binaryTile.x >= (1 << 10) || binaryTile.y < 0) return false;
+        if (binaryTile.x <= 0 || binaryTile.x >= (1 << 10) || binaryTile.y < 0) return false;
         return true;
     }
 
@@ -227,12 +231,14 @@ public class TetrisState
 
         for (int i = 0; i < rotationIndex; i++) pieceModel.Rotate();
 
-        do
+        xCoord = UnityEngine.Random.Range(0, 10);
+        int j = 0;
+        while(!pieceModel.CanPieceMove(new Vector2Int(xCoord - pieceModel.GetOneTileCoords(0).x, 0), this) && j < 100)
         {
-            xCoord = UnityEngine.Random.Range(0, 9);
+            xCoord = UnityEngine.Random.Range(0, 10);
+            j++;
         }
-        while (pieceModel.CanPieceMove(new Vector2Int(xCoord - pieceModel.GetOneTileCoords(0).x, 0), this));
-
+        
         pieceModel.ResetCoordinates();
 
         return new PieceAction(rotationIndex, xCoord);

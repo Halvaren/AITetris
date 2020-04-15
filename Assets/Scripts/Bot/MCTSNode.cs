@@ -71,6 +71,8 @@ public class MCTSNode
             TetrisState newState = state.CloneState();
             newState.DoAction(newCurrentPiece, action);
 
+            newCurrentPiece.ResetCoordinates();
+
             MCTSNode newNode = new MCTSNode(MCTreeSearch.nNodes, this, newState, action, newCurrentPiece, newNextPiece);
             children.Add(newNode);
         }

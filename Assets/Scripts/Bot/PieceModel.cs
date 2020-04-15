@@ -122,7 +122,7 @@ public class PieceModel
     {
         bool canMove = CanPieceMove(movement, tetrisState);
 
-        if(canMove)
+        if (canMove)
         {
             for (int i = 0; i < tileCoordinates.Length; i++)
             {
@@ -152,14 +152,37 @@ public class PieceModel
         }
     }
 
-    public Vector2Int[] DoAction(PieceAction action, TetrisState tetrisState)
+    public void DoAction(PieceAction action, TetrisState tetrisState)
     {
         Move(new Vector2Int(action.xCoord - tileCoordinates[0].x, 0), tetrisState);
         for(int i = 0; i < action.rotationIndex; i++)
         {
             Rotate();
         }
+    }
 
-        return GetBinaryTiles(tileCoordinates);
+    public PieceModel ClonePiece()
+    {
+        PieceModel newPiece = new PieceModel(pieceType);
+
+        newPiece.originalTileCoordinates = new Vector2Int[4];
+        for(int i = 0; i < originalTileCoordinates.Length; i++)
+        {
+            newPiece.originalTileCoordinates[i] = originalTileCoordinates[i];
+        }
+
+        newPiece.tileCoordinates = new Vector2Int[4];
+        for (int i = 0; i < tileCoordinates.Length; i++)
+        {
+            newPiece.tileCoordinates[i] = tileCoordinates[i];
+        }
+
+        newPiece.binaryTiles = new Vector2Int[4];
+        for (int i = 0; i < binaryTiles.Length; i++)
+        {
+            newPiece.binaryTiles[i] = binaryTiles[i];
+        }
+
+        return newPiece;
     }
 }

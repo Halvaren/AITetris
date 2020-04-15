@@ -455,6 +455,12 @@ MonoBehaviour:
   UIController: {fileID: 1530482261}
   linesToLevelUp: 10
   possibleScores: 640000002c010000f401000020030000
+  botPlayer: 1
+  initialActionTime: 10
+  nextActionsTime: 1
+  holesWeight: 0.5
+  bumpinessWeight: 0.5
+  linesWeight: 2000
 --- !u!4 &456553324
 Transform:
   m_ObjectHideFlags: 0

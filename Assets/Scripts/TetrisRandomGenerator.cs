@@ -51,27 +51,28 @@ public class TetrisRandomGenerator : MonoBehaviour
         while(bag.Count < 7)
         {
             PieceType newPiece;
-            if(lastIPosition != -1 && !IPieceInBag && ((7 - lastIPosition) + bag.Count) >= maxPiecesBetweenIs)
+            /*if(lastIPosition != -1 && !IPieceInBag && ((7 - lastIPosition) + bag.Count) >= maxPiecesBetweenIs)
             {
                 newPiece = PieceType.I;
             }
             else
-            {
-            newPiece = (PieceType) Random.Range(0, 7);
-            }
+            {*/
+            newPiece = Random.value > 0.5f ? PieceType.I : PieceType.O;//(PieceType) Random.Range(0, 1);
+            //}
+            bag.Add(newPiece);
 
 
-            if (!bag.Contains(newPiece) && (bag.Count > 0 || newPiece != lastPieceInPreviousBag))
+            /*if (!bag.Contains(newPiece) && (bag.Count > 0 || newPiece != lastPieceInPreviousBag))
             {
                 if(newPiece == PieceType.I)
                 {
-                    IPieceInBag = true;
+                    //IPieceInBag = true;
                     lastIPosition = currentBag.Count;
                 }
                 bag.Add(newPiece);
 
                 if (bag.Count == 7) lastPieceInPreviousBag = newPiece;
-            }
+            }*/
 
             yield return new WaitForEndOfFrame();
         }

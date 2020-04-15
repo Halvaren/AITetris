@@ -74,10 +74,11 @@ public class TetrisBoardController : MonoBehaviour
         while (!TetrisRandomGenerator.Instance.GetBagsPrepared())
             yield return null;
 
-        if (botPlayer) StartCoroutine(BotCoroutine());
 
         currentPiece = pieceEmitter.EmitPiece();
         startedGame = true;
+
+        if (botPlayer) StartCoroutine(BotCoroutine());
     }
 
     IEnumerator BotCoroutine()
@@ -91,7 +92,8 @@ public class TetrisBoardController : MonoBehaviour
 
         while (startedGame)
         {
-            if (TetrisRandomGenerator.Instance.GetBagsPrepared()) bot.Act(currentPiece.pieceType, nextActionsTime * 0.9f);
+            bot.Act(currentPiece.pieceType, nextActionsTime * 0.9f);
+
             yield return timerBetweenActions;
         }
     }
