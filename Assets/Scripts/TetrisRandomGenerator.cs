@@ -14,6 +14,8 @@ public class TetrisRandomGenerator : MonoBehaviour
 
     public Transform nextPiecesDisplayer;
 
+    public int randomSeed = 42;
+
     private static TetrisRandomGenerator instance;
     public static TetrisRandomGenerator Instance
     {
@@ -29,6 +31,7 @@ public class TetrisRandomGenerator : MonoBehaviour
 
         currentBag = new ArrayList();
         nextBag = new ArrayList();
+        Random.InitState(randomSeed);
 
         nextPiece = 0;
 
@@ -39,6 +42,8 @@ public class TetrisRandomGenerator : MonoBehaviour
 
     public IEnumerator FillBags()
     {
+        nextPiece = 0;
+
         yield return StartCoroutine(FillBag(currentBag));
         StartCoroutine(FillBag(nextBag));
     }
@@ -51,28 +56,28 @@ public class TetrisRandomGenerator : MonoBehaviour
         while(bag.Count < 7)
         {
             PieceType newPiece;
-            /*if(lastIPosition != -1 && !IPieceInBag && ((7 - lastIPosition) + bag.Count) >= maxPiecesBetweenIs)
+            if(lastIPosition != -1 && !IPieceInBag && ((7 - lastIPosition) + bag.Count) >= maxPiecesBetweenIs)
             {
                 newPiece = PieceType.I;
             }
             else
-            {*/
-            newPiece = Random.value > 0.5f ? PieceType.I : PieceType.O;//(PieceType) Random.Range(0, 1);
-            //}
-            bag.Add(newPiece);
+            {
+                newPiece = (PieceType) Random.Range(0, 7); //, 1);
+            }
+            //bag.Add(newPiece);
 
 
-            /*if (!bag.Contains(newPiece) && (bag.Count > 0 || newPiece != lastPieceInPreviousBag))
+            if (!bag.Contains(newPiece) && (bag.Count > 0 || newPiece != lastPieceInPreviousBag))
             {
                 if(newPiece == PieceType.I)
                 {
-                    //IPieceInBag = true;
+                    IPieceInBag = true;
                     lastIPosition = currentBag.Count;
                 }
                 bag.Add(newPiece);
 
                 if (bag.Count == 7) lastPieceInPreviousBag = newPiece;
-            }*/
+            }
 
             yield return new WaitForEndOfFrame();
         }
@@ -104,8 +109,8 @@ public class TetrisRandomGenerator : MonoBehaviour
     {
         PieceType result;
 
-        if (nextPiece + nextPiecesDisplayer.childCount < currentBag.Count) result = (PieceType)currentBag[nextPiece + nextPiecesDisplayer.childCount];
-        else result = (PieceType)nextBag[(nextPiece + nextPiecesDisplayer.childCount) - currentBag.Count];
+        if (nextPiece - 1 + nextPiecesDisplayer.childCount < currentBag.Count) result = (PieceType)currentBag[nextPiece - 1 + nextPiecesDisplayer.childCount];
+        else result = (PieceType)nextBag[(nextPiece - 1 + nextPiecesDisplayer.childCount) - currentBag.Count];
 
         return result;
     }
@@ -118,9 +123,9 @@ public class TetrisRandomGenerator : MonoBehaviour
         int j = 0;
         while (i < result.Length)
         {
-            if(nextPiece + i < currentBag.Count)
+            if((nextPiece - 1) + i < currentBag.Count)
             {
-                result[i] = (PieceType) currentBag[nextPiece + i];
+                result[i] = (PieceType) currentBag[(nextPiece - 1) + i];
                 i++;
             }
             else

@@ -154,11 +154,12 @@ public class PieceModel
 
     public void DoAction(PieceAction action, TetrisState tetrisState)
     {
-        Move(new Vector2Int(action.xCoord - tileCoordinates[0].x, 0), tetrisState);
-        for(int i = 0; i < action.rotationIndex; i++)
+        for (int i = 0; i < action.rotationIndex; i++)
         {
             Rotate();
         }
+
+        Move(new Vector2Int(action.xCoord - tileCoordinates[0].x, 0), tetrisState);
     }
 
     public PieceModel ClonePiece()

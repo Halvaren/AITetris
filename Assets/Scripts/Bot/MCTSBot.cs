@@ -9,15 +9,14 @@ public class MCTSBot : TetrisBot
     MCTreeSearch treeSearch;
     MCTSNode currentNode;
 
-    public float holesWeight;
-    public float bumpinessWeight;
-    public float linesWeight;
+    private List<PieceType> pieces;
 
     int rollouts = 0;
 
     public MCTSBot(PieceType[] initialPieces, float budget, int piecesPerRollout) : base(initialPieces)
     {
         this.piecesPerRollout = piecesPerRollout;
+        pieces = new List<PieceType>(initialPieces);
 
         nextPieces = new List<PieceModel>();
         for(int i = 0; i < initialPieces.Length; i++)
@@ -25,13 +24,6 @@ public class MCTSBot : TetrisBot
             nextPieces.Add(new PieceModel(initialPieces[i]));
         }
         CreateTree(nextPieces.ToArray(), budget);
-    }
-
-    public void SetWeights(float holesWeight, float bumpinessWeight, float linesWeight)
-    {
-        this.holesWeight = holesWeight;
-        this.bumpinessWeight = bumpinessWeight;
-        this.linesWeight = linesWeight;
     }
 
     private void CreateTree(PieceModel[] initialPieces, float budget)
@@ -42,53 +34,44 @@ public class MCTSBot : TetrisBot
 
     public void AddNewPiece(PieceType newPieceType)
     {
-        nextPieces.RemoveAt(0);
-        PieceModel newPiece = new PieceModel(newPieceType);
-
-        nextPieces.Add(newPiece);
-        treeSearch.AddPiece(currentNode, newPiece);
+        pieces.Add(newPieceType);
     }
 
-    public void Act(PieceType nextPieceType, float budget)
+    public IEnumerator ActCoroutine(PieceType nextPieceType, float budget)
     {
-        TetrisBoardController.Instance.StartCoroutine(ActCoroutine(nextPieceType, budget));
-    }
-
-    private IEnumerator ActCoroutine(PieceType nextPieceType, float budget)
-    {
+        //Debug.Log(nextPieceType);
         rollouts = 0;
-        float t0 = Time.time;
 
         PieceModel nextPiece = new PieceModel(nextPieceType);
+
+        //yield return TetrisBoardController.Instance.StartCoroutine(TetrisBoardController.Instance.ShowPossibleActionsCoroutine(currentNode.state.GetActions(nextPiece)));
+
+        float t0 = Time.time;
 
         MCTSNode currentRollingNode = currentNode;
         if (currentRollingNode.children.Count == 0)
         {
-            currentRollingNode.ExtendNode(nextPiece, null);
+            currentRollingNode.ExtendNode(nextPiece);
         }
 
         while (Time.time - t0 < budget)
-        {
-            float t1 = Time.time;
-            
+        {            
             foreach(MCTSNode child in currentRollingNode.children)
             {
                 float score = Rollout(child);
-                Debug.Log(score);
                 child.score += score;
                 child.n += 1;
 
                 Backpropagation(child.parent, score);
-                currentRollingNode = currentNode;
             }
 
             MCTSNode bestChild = currentRollingNode.GetBestChild();
             
             if (bestChild.children.Count == 0)
             {
-                if (bestChild.nextPiece != null)
+                if(bestChild.height < pieces.Count)
                 {
-                    bestChild.ExtendNode(bestChild.nextPiece, null);
+                    bestChild.ExtendNode(new PieceModel(pieces[bestChild.height]));
                     RolloutOneRandomChild(bestChild);
                 }
                 currentRollingNode = currentNode;
@@ -106,7 +89,7 @@ public class MCTSBot : TetrisBot
         currentNode = recommendedChild;
         actualTetrisState.DoAction(nextPiece, recommendedChild.action);
 
-        //Debug.Log("Rollouts: " + rollouts);
+        Debug.Log("Rollouts: " + rollouts);
 
         TetrisBoardController.Instance.DoActionByBot(recommendedChild.action);
     }
@@ -116,24 +99,32 @@ public class MCTSBot : TetrisBot
         MCTSNode bestChild = null;
         float bestScore = -Mathf.Infinity;
 
+        //Debug.Log("Scores ");
+
         foreach (MCTSNode child in rootNode.children)
         {
             float score = 0;
-            if (child.n != 0) { score = child.score / child.n; /*Debug.Log(score);*/ }
+            if (child.n != 0) 
+            { 
+                score = child.score / child.n; 
+                Debug.Log("Score " + score);
+                Debug.Log("X " + child.action.xCoord + " Rotation " + child.action.rotationIndex);
+            }
+            //Debug.Log("Score " + child.score);
+            //Debug.Log("X " + child.action.xCoord + " Rotation " + child.action.rotationIndex);
 
-            if(score >= bestScore)
+            if (score >= bestScore)
             {
                 bestScore = score;
                 bestChild = child;
             }
         }
 
-        return bestChild;
-    }
+        Debug.Log("Chosen child " + bestChild.currentPiece.pieceType);
+        Debug.Log("Score " + bestScore);
+        Debug.Log("X " + bestChild.action.xCoord + " Rotation " + bestChild.action.rotationIndex);
 
-    private float GetScore(TetrisState state)
-    {
-        return -(holesWeight * state.GetHoleCount()) - (bumpinessWeight * state.GetBumpiness()) + (linesWeight * state.GetClearedLines());
+        return bestChild;
     }
 
     public void Backpropagation(MCTSNode node, float score)
@@ -164,7 +155,7 @@ public class MCTSBot : TetrisBot
             nPieces++;
         }
 
-        float score = GetScore(newState);
+        float score = newState.GetScore();
 
         rollouts++;
 

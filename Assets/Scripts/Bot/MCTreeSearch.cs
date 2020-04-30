@@ -17,7 +17,7 @@ public class MCTreeSearch
     {
         float t0 = Time.time;
 
-        rootNode = new MCTSNode(nNodes, null, state, null, null, initialPieces[0]);
+        rootNode = new MCTSNode(nNodes, null, state, null, null);
 
         Queue<MCTSNode> queue = new Queue<MCTSNode>();
         queue.Enqueue(rootNode);
@@ -28,7 +28,7 @@ public class MCTreeSearch
 
             if (currentNode.height >= initialPieces.Length) break;
 
-            currentNode.ExtendNode(initialPieces[currentNode.height], currentNode.height + 1 >= initialPieces.Length ? null : initialPieces[currentNode.height + 1]);
+            currentNode.ExtendNode(initialPieces[currentNode.height]);
 
             if (currentNode.children.Count > 0)
                 foreach (MCTSNode child in currentNode.children)
@@ -42,8 +42,10 @@ public class MCTreeSearch
 
     private void PrintTree(MCTSNode rootNode)
     {
-        Debug.Log("Number of nodes: " + nNodes);
-        Debug.Log("Current height: " + currentHeight);
+        LogWriter.Instance.Initialize();
+
+        LogWriter.Instance.Write("Number of nodes: " + nNodes);
+        LogWriter.Instance.Write("Current height: " + currentHeight);
 
         Queue<MCTSNode> queue = new Queue<MCTSNode>();
         queue.Enqueue(rootNode);
@@ -52,7 +54,7 @@ public class MCTreeSearch
         {
             MCTSNode currentNode = queue.Dequeue();
 
-            Debug.Log(currentNode.ToString());
+            LogWriter.Instance.Write(currentNode.ToString());
 
             if (currentNode.children.Count > 0)
                 foreach (MCTSNode child in currentNode.children)
@@ -60,7 +62,7 @@ public class MCTreeSearch
         }
     }
 
-    public void AddPiece(MCTSNode initialNode, PieceModel newPiece)
+    /*public void AddPiece(MCTSNode initialNode, PieceModel newPiece)
     {
         Queue<MCTSNode> queue = new Queue<MCTSNode>();
         queue.Enqueue(initialNode);
@@ -68,7 +70,7 @@ public class MCTreeSearch
         while (queue.Count > 0)
         {
             MCTSNode currentNode = queue.Dequeue();
-            //if (currentNode.height == currentHeight - 1) currentNode.nextPiece = newPiece;
+            if (currentNode.nextPiece == null) currentNode.nextPiece = newPiece;
 
             if (currentNode.children.Count > 0)
                 foreach (MCTSNode child in currentNode.children)
@@ -78,10 +80,10 @@ public class MCTreeSearch
 
             else
             {
-                currentNode.ExtendNode(newPiece, null);
+                currentNode.ExtendNode(currentNode.nextPiece, null);
             }
         }
 
         //PrintTree(rootNode);
-    }
+    }*/
 }

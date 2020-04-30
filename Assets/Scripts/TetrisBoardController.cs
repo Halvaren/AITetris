@@ -83,28 +83,49 @@ public class TetrisBoardController : MonoBehaviour
 
     IEnumerator BotCoroutine()
     {
-        WaitForSeconds timerBetweenActions = new WaitForSeconds(nextActionsTime);
-
         bot = new MCTSBot(TetrisRandomGenerator.Instance.GetNextPieces(), initialActionTime * 0.9f, 10000);
-        bot.SetWeights(holesWeight, bumpinessWeight, linesWeight);
 
         yield return new WaitForSeconds(initialActionTime);
 
         while (startedGame)
         {
-            bot.Act(currentPiece.pieceType, nextActionsTime * 0.9f);
+            yield return StartCoroutine(bot.ActCoroutine(currentPiece.pieceType, nextActionsTime * 0.9f));
+        }
+    }
 
-            yield return timerBetweenActions;
+    public IEnumerator ShowPossibleActionsCoroutine(List<PieceAction> actions)
+    {
+        int j = 0;
+        Vector2Int[] originalCoordinates = currentPiece.GetTileCoords();
+
+        currentPiece.MovePiece(originalCoordinates);
+        foreach (PieceAction action in actions)
+        {
+            for (int i = 0; i < action.rotationIndex; i++)
+            {
+                currentPiece.RotatePiece(true, true);
+            }
+            Vector2Int direction = new Vector2Int(action.xCoord - currentPiece.tiles[0].Coordinates.x, 0);
+            currentPiece.MovePiece(direction);
+
+            yield return new WaitForSeconds(0.1f);
+
+            currentPiece.DropPiece(true, true);
+            j++;
+
+            yield return new WaitForSeconds(0.3f);
+
+            currentPiece.MovePiece(originalCoordinates);
         }
     }
 
     public void DoActionByBot(PieceAction action)
     {
-        currentPiece.MovePiece(new Vector2Int(action.xCoord - currentPiece.tiles[0].Coordinates.x, 0));
         for (int i = 0; i < action.rotationIndex; i++)
         {
             currentPiece.RotatePiece(true, true);
         }
+        currentPiece.MovePiece(new Vector2Int(action.xCoord - currentPiece.tiles[0].Coordinates.x, 0));
 
         currentPiece.DropPiece(true);
     }

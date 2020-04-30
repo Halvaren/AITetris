@@ -179,26 +179,25 @@ public class TetrisState
         return !pieceModel.CanPieceMove(Vector2Int.zero, this);
     }
 
+    public float GetScore()
+    {
+        return -(TetrisBoardController.Instance.holesWeight * GetHoleCount()) 
+            - (TetrisBoardController.Instance.bumpinessWeight * GetBumpiness()) 
+            + (TetrisBoardController.Instance.linesWeight * GetClearedLines());
+    }
+
     public List<PieceAction> GetActions(PieceModel pieceModel)
     {
         List<PieceAction> actions = new List<PieceAction>();
-        Vector2Int[] originalCoordinates = pieceModel.GetCoordinates();
 
-        /*for(int i = 0; i < 2; i++)
+        PieceType pieceType = pieceModel.pieceType;
+        int rotations = 4;
+        if (pieceType == PieceType.O) rotations = 1;
+        else if (pieceType == PieceType.S || pieceType == PieceType.Z || pieceType == PieceType.I) rotations = 2;
+
+        for (int i = 0; i < rotations; i++)
         {
-            pieceModel.SetCoordinates(originalCoordinates); //The piece is placed in the spawn position
-            for (int j = 0; j < i; j++) pieceModel.Rotate(); //It is rotated to an specific rotate index
-
-            while (pieceModel.Move(Vector2Int.left, this)) { } //It is moved to the left limit of the board
-
-            while (pieceModel.Move(Vector2Int.down, this)) { } //The piece is moved down until it collides with something
-
-            actions.Add(new PieceAction(i, pieceModel.GetOneTileCoords(0).x)); //That will be a new possible action
-        }*/
-
-        for (int i = 0; i < 4; i++)
-        {
-            pieceModel.SetCoordinates(originalCoordinates); //The piece is placed in the spawn position
+            pieceModel.ResetCoordinates();
             for (int j = 0; j < i; j++) pieceModel.Rotate(); //It is rotated to an specific rotate index
 
             while (pieceModel.Move(Vector2Int.left, this)) { } //It is moved to the left limit of the board
@@ -207,13 +206,7 @@ public class TetrisState
             //For each available position between left and right limit
             while(horizontalPosition < boardWidth)
             {
-                Vector2Int[] coordinatesFromTop = pieceModel.GetCoordinates();
-
-                while (pieceModel.Move(Vector2Int.down, this)) { } //The piece is moved down until it collides with something
-
                 actions.Add(new PieceAction(i, pieceModel.GetOneTileCoords(0).x)); //That will be a new possible action
-
-                pieceModel.SetCoordinates(coordinatesFromTop); //Coordinates of the piece are reset to be again at the top of the board
 
                 while (!pieceModel.Move(Vector2Int.right, this)) { horizontalPosition++; if (horizontalPosition >= boardWidth) break; } //While the horizontal position is not available, the piece will be moved to the right
             }
@@ -260,10 +253,16 @@ public class TetrisState
     {
         string result = "";
 
-        for(int y = 0; y < board.Length; y++)
+        for(int y = board.Length - 1; y >= 0; y--)
         {
-            result += Convert.ToString(board[y], 2) + "\n";
+            string number = Convert.ToString(board[y], 2);
+            for (int i = 0; i < 10 - number.Length; i++) result += "0";
+            result += number + "\n";
         }
+
+        result += "Holes: " + GetHoleCount() + "\n";
+        result += "Bumpiness: " + GetBumpiness() + "\n";
+        result += "Lines: " + GetClearedLines() + "\n";
 
         return result;
     }

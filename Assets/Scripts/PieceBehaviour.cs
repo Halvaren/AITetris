@@ -99,7 +99,6 @@ public class PieceBehaviour : MonoBehaviour
             tileCoords.Add(tiles[i].Coordinates);
         }
 
-        tileCoords = tileCoords.OrderBy(x => x.x).ThenByDescending(x => x.y).ToList();
         Vector2Int[] result = tileCoords.ToArray();
 
         return result;
@@ -115,13 +114,13 @@ public class PieceBehaviour : MonoBehaviour
         return false;
     }
 
-    public bool MovePiece(Vector2Int movement)
+    public bool MovePiece(Vector2Int movement, bool test = false)
     {
         bool canMove = CanPieceMove(movement);
 
         if (!canMove)
         {
-            if (movement == Vector2Int.down) SetPiece();
+            if (!test && movement == Vector2Int.down) SetPiece();
             return false;
         }
 
@@ -133,6 +132,14 @@ public class PieceBehaviour : MonoBehaviour
         moved = true;
 
         return true;
+    }
+
+    public void MovePiece(Vector2Int[] tileCoords)
+    {
+        for(int i = 0; i < tileCoords.Length; i++)
+        {
+            tiles[i].UpdatePosition(tileCoords[i]);
+        }
     }
 
     public void RotatePiece(bool clockwise, bool shouldOffset)
@@ -204,11 +211,11 @@ public class PieceBehaviour : MonoBehaviour
         spawnLocation = TetrisBoardController.Instance.spawnPos;
     }
 
-    public void DropPiece(bool hardDrop = false)
+    public void DropPiece(bool hardDrop = false, bool test = false)
     {
         if (hardDrop)
         {
-            while (MovePiece(Vector2Int.down)) { }
+            while (MovePiece(Vector2Int.down, test)) { }
         }
         else
         {

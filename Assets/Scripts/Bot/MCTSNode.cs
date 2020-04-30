@@ -9,7 +9,6 @@ public class MCTSNode
     public TetrisState state;
     public PieceAction action;
     public PieceModel currentPiece;
-    public PieceModel nextPiece;
 
     public float score;
     public int n;
@@ -17,19 +16,20 @@ public class MCTSNode
 
     public int height;
 
-    public MCTSNode(int id, MCTSNode parent, TetrisState state, PieceAction action, PieceModel currentPiece, PieceModel nextPiece)
+    public MCTSNode(int id, MCTSNode parent, TetrisState state, PieceAction action, PieceModel currentPiece)
     {
         this.id = id;
         this.parent = parent;
         this.state = state;
         this.action = action;
         this.currentPiece = currentPiece;
-        this.nextPiece = nextPiece;
 
         children = new List<MCTSNode>();
 
         if (parent != null) height = parent.height + 1;
         else height = 0;
+
+        this.score = state.GetScore();
 
         MCTreeSearch.nNodes++;
         if(height > MCTreeSearch.currentHeight) MCTreeSearch.currentHeight = height;
@@ -62,7 +62,7 @@ public class MCTSNode
         return bestChild;
     }
 
-    public void ExtendNode(PieceModel newCurrentPiece, PieceModel newNextPiece)
+    public void ExtendNode(PieceModel newCurrentPiece)
     {
         List<PieceAction> actions = state.GetActions(newCurrentPiece);
 
@@ -73,7 +73,7 @@ public class MCTSNode
 
             newCurrentPiece.ResetCoordinates();
 
-            MCTSNode newNode = new MCTSNode(MCTreeSearch.nNodes, this, newState, action, newCurrentPiece, newNextPiece);
+            MCTSNode newNode = new MCTSNode(MCTreeSearch.nNodes, this, newState, action, newCurrentPiece);
             children.Add(newNode);
         }
     }
@@ -90,7 +90,6 @@ public class MCTSNode
         result += "State: \n";
         result += state.ToString();
         result += "Current piece: " + (currentPiece != null ? currentPiece.pieceType.ToString() : "null") + "\n";
-        result += "Next piece: " + (nextPiece != null ? nextPiece.pieceType.ToString() : "null") + "\n";
         result += "---------------------------------------------------------\n";
         result += "Score: " + score + "\n";
         result += "N: " + n + "\n";
