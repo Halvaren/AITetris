@@ -44,8 +44,8 @@ public class MCTreeSearch
     {
         LogWriter.Instance.Initialize();
 
-        LogWriter.Instance.Write("Number of nodes: " + nNodes);
-        LogWriter.Instance.Write("Current height: " + currentHeight);
+        LogWriter.Instance.WriteMCTreeSearch("Number of nodes: " + nNodes);
+        LogWriter.Instance.WriteMCTreeSearch("Current height: " + currentHeight);
 
         Queue<MCTSNode> queue = new Queue<MCTSNode>();
         queue.Enqueue(rootNode);
@@ -54,7 +54,7 @@ public class MCTreeSearch
         {
             MCTSNode currentNode = queue.Dequeue();
 
-            LogWriter.Instance.Write(currentNode.ToString());
+            LogWriter.Instance.WriteMCTreeSearch(currentNode.ToString());
 
             if (currentNode.children.Count > 0)
                 foreach (MCTSNode child in currentNode.children)

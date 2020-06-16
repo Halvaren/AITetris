@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class LogWriter : MonoBehaviour
 {
@@ -14,7 +15,8 @@ public class LogWriter : MonoBehaviour
         }
     }
 
-    public string logFilePath = "Asset/Resources/MCTreeSearchLog.txt";
+    public string MCTreeSearchLogFilePath = "Assets/Resources/MCTreeSearchLog.txt";
+    public string ScoreLogFilePath = "Assets/Resources/ScoreLog.txt";
 
     private void Awake()
     {
@@ -23,11 +25,16 @@ public class LogWriter : MonoBehaviour
 
     public void Initialize()
     {
-        File.WriteAllText(logFilePath, "");
+        File.WriteAllText(MCTreeSearchLogFilePath, "");
     }
 
-    public void Write(string text)
+    public void WriteMCTreeSearch(string text)
     {
-        File.AppendAllText(logFilePath, text + "\n");
+        File.AppendAllText(MCTreeSearchLogFilePath, text + "\n");
+    }
+
+    public void WriteScoreLog(string text)
+    {
+        File.AppendAllText(ScoreLogFilePath, text + "\n");
     }
 }

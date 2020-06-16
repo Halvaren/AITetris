@@ -41,6 +41,8 @@ public class TetrisBoardController : MonoBehaviour
     public float bumpinessWeight;
     public float linesWeight;
 
+    public bool weightEvolution = false;
+
     private bool startedGame = false;
 
     private static TetrisBoardController instance;
@@ -59,6 +61,10 @@ public class TetrisBoardController : MonoBehaviour
 
     void Start()
     {
+        if (weightEvolution) { 
+            //holesWeight = bumpinessWeight = linesWeight = 0f;
+            LogWriter.Instance.WriteScoreLog("------------------------------------------------------");
+        }
         StartCoroutine(InitializeGame());
     }
 
@@ -397,6 +403,34 @@ public class TetrisBoardController : MonoBehaviour
                 }
             }
             yield return timeBetweenLineRemoving;
+        }
+
+        if(weightEvolution)
+        {
+            LogWriter.Instance.WriteScoreLog("Holes weight: " + holesWeight);
+            LogWriter.Instance.WriteScoreLog("Bumpiness weight: " + bumpinessWeight);
+            LogWriter.Instance.WriteScoreLog("Lines weight: " + linesWeight);
+            LogWriter.Instance.WriteScoreLog("Score: " + score + "\n");
+        }
+
+        if (weightEvolution)
+        {
+            bumpinessWeight += 0.1f;
+            if (bumpinessWeight > 1.05f)
+            {
+                bumpinessWeight = 0f;
+                holesWeight += 0.1f;
+
+                if (holesWeight > 1.05f)
+                {
+                    holesWeight = 0f;
+                    linesWeight += 0.1f;
+                    if (linesWeight > 1.05f)
+                    {
+                        weightEvolution = false;
+                    }
+                }
+            }
         }
 
         StopAllCoroutines();
