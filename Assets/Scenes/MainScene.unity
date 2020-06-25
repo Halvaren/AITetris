@@ -738,9 +738,9 @@ MonoBehaviour:
   botPlayer: 1
   initialActionTime: 1
   nextActionsTime: 1
-  holesWeight: 0.3
-  bumpinessWeight: 0.9
-  linesWeight: 0.2
+  holesWeight: 0
+  bumpinessWeight: 0
+  linesWeight: 0
   weightEvolution: 1
 --- !u!4 &456553324
 Transform:
