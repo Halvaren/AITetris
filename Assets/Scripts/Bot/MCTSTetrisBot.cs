@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MCTSBot : TetrisBot
+public class MCTSTetrisBot : TetrisBot
 {
-    int piecesPerRollout;
+    protected MCTreeSearch treeSearch;
+    protected MCTSNode currentNode;
 
-    MCTreeSearch treeSearch;
-    MCTSNode currentNode;
+    protected List<PieceModel> nextPieces;
+    protected List<PieceType> pieces;
 
-    private List<PieceType> pieces;
+    protected int rollouts = 0;
 
-    int rollouts = 0;
+    protected float rolloutScoreWeightReduction = 0.5f;
 
-    public MCTSBot(PieceType[] initialPieces, float budget, int piecesPerRollout) : base(initialPieces)
+    public MCTSTetrisBot(PieceType[] initialPieces, float budget)
     {
-        this.piecesPerRollout = piecesPerRollout;
         pieces = new List<PieceType>(initialPieces);
 
         nextPieces = new List<PieceModel>();
@@ -26,9 +26,9 @@ public class MCTSBot : TetrisBot
         CreateTree(nextPieces.ToArray(), budget);
     }
 
-    private void CreateTree(PieceModel[] initialPieces, float budget)
+    protected void CreateTree(PieceModel[] initialPieces, float budget)
     {
-        treeSearch = new MCTreeSearch(actualTetrisState, budget * 0.5f, initialPieces);
+        treeSearch = new MCTreeSearch(currentTetrisState, budget * 0.5f, initialPieces);
         currentNode = treeSearch.rootNode;
     }
 
@@ -37,7 +37,7 @@ public class MCTSBot : TetrisBot
         pieces.Add(newPieceType);
     }
 
-    public IEnumerator ActCoroutine(PieceType nextPieceType, float budget)
+    public override IEnumerator ActCoroutine(PieceType nextPieceType, float budget)
     {
         //Debug.Log(nextPieceType);
         rollouts = 0;
@@ -58,11 +58,16 @@ public class MCTSBot : TetrisBot
         {            
             foreach(MCTSNode child in currentRollingNode.children)
             {
-                float score = Rollout(child);
-                child.score += score;
-                child.n += 1;
+                if(!child.state.IsTerminal())
+                {
+                    float score = Rollout(child);
+                    child.score += score;
+                    child.n += 1;
 
-                Backpropagation(child.parent, score);
+                    Backpropagation(child.parent, score);
+                }
+                else
+                    child.n += 1;
             }
 
             MCTSNode bestChild = currentRollingNode.GetBestChild();
@@ -87,14 +92,14 @@ public class MCTSBot : TetrisBot
         MCTSNode recommendedChild = GetRecommendedChild(currentNode);
 
         currentNode = recommendedChild;
-        actualTetrisState.DoAction(nextPiece, recommendedChild.action);
+        currentTetrisState.DoAction(nextPiece, recommendedChild.action);
 
-        Debug.Log("Rollouts: " + rollouts);
+        //Debug.Log("Rollouts: " + rollouts);
 
         TetrisBoardController.Instance.DoActionByBot(recommendedChild.action);
     }
 
-    public MCTSNode GetRecommendedChild(MCTSNode rootNode)
+    protected MCTSNode GetRecommendedChild(MCTSNode rootNode)
     {
         MCTSNode bestChild = null;
         float bestScore = -Mathf.Infinity;
@@ -105,10 +110,10 @@ public class MCTSBot : TetrisBot
         {
             float score = 0;
             if (child.n != 0) 
-            { 
-                score = child.score / child.n; 
-                Debug.Log("Score " + score);
-                Debug.Log("X " + child.action.xCoord + " Rotation " + child.action.rotationIndex);
+            {
+                score = child.state.IsTerminal() ? -float.MaxValue : child.score / child.n;
+                //Debug.Log("Score " + score);
+                //Debug.Log("X " + child.action.xCoord + " Rotation " + child.action.rotationIndex);
             }
             //Debug.Log("Score " + child.score);
             //Debug.Log("X " + child.action.xCoord + " Rotation " + child.action.rotationIndex);
@@ -120,14 +125,15 @@ public class MCTSBot : TetrisBot
             }
         }
 
-        Debug.Log("Chosen child " + bestChild.currentPiece.pieceType);
+        /*Debug.Log("Chosen child " + bestChild.currentPiece.pieceType);
         Debug.Log("Score " + bestScore);
         Debug.Log("X " + bestChild.action.xCoord + " Rotation " + bestChild.action.rotationIndex);
+        */
 
         return bestChild;
     }
 
-    public void Backpropagation(MCTSNode node, float score)
+    protected void Backpropagation(MCTSNode node, float score)
     {
         while(node != null)
         {
@@ -137,32 +143,38 @@ public class MCTSBot : TetrisBot
         }
     }
 
-    private float Rollout(MCTSNode node)
+    protected virtual float Rollout(MCTSNode node)
     {
         TetrisState newState = node.state.CloneState();
 
         int nPieces = 0;
 
-        while (nPieces < nextPieces.Count/*nPieces < piecesPerRollout && !newState.IsTerminal(node.currentPiece)*/)
+        float totalScore = node.state.GetScore();
+        float weight = 1f;
+        float totalWeight = weight;
+
+        while (nPieces < nextPieces.Count && !newState.IsTerminal())
         {
+            weight *= rolloutScoreWeightReduction;
+            totalWeight += weight;
+
             PieceModel piece;
-            //if (nPieces < nextPieces.Count)
-                piece = nextPieces[nPieces];
-            /*else
-                piece = new PieceModel((PieceType) Random.Range(0, 6));*/
+            piece = nextPieces[nPieces];
 
-            newState.DoAction(piece, newState.GetRandomAction(piece), true);
+            newState.DoAction(piece, newState.GetRandomAction(piece));
             nPieces++;
-        }
 
-        float score = newState.GetScore();
+            totalScore += newState.GetScore() * weight;
+        }
+        
+        float score = totalScore / totalWeight;
 
         rollouts++;
 
         return score;
     }
 
-    private void RolloutOneRandomChild(MCTSNode node)
+    protected void RolloutOneRandomChild(MCTSNode node)
     {
         int oneChildIndex = Random.Range(0, node.children.Count);
         MCTSNode oneChild = node.children[oneChildIndex];

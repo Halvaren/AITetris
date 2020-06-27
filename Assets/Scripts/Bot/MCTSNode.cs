@@ -29,8 +29,6 @@ public class MCTSNode
         if (parent != null) height = parent.height + 1;
         else height = 0;
 
-        this.score = state.GetScore();
-
         MCTreeSearch.nNodes++;
         if(height > MCTreeSearch.currentHeight) MCTreeSearch.currentHeight = height;
     }

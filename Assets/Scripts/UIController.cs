@@ -8,10 +8,12 @@ public class UIController : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI linesText;
     public TextMeshProUGUI levelText;
+    public TextMeshProUGUI piecesText;
 
     public string defaultScoreText;
     public string defaultLinesText;
     public string defaultLevelText;
+    public string defaultPiecesText;
 
     public void UpdateScoreText(int score)
     {
@@ -26,5 +28,10 @@ public class UIController : MonoBehaviour
     public void UpdateLevelText(int level)
     {
         levelText.text = defaultLevelText + level;
+    }
+
+    public void UpdatePiecesText(int pieces)
+    {
+        piecesText.text = defaultPiecesText + pieces;
     }
 }

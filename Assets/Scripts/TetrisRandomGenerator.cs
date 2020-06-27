@@ -1,10 +1,12 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 
 public class TetrisRandomGenerator : MonoBehaviour
 {
-    private ArrayList currentBag;
-    private ArrayList nextBag;
+    private List<int> currentBag;
+    private List<int> nextBag;
 
     private int nextPiece;
 
@@ -29,8 +31,8 @@ public class TetrisRandomGenerator : MonoBehaviour
     {
         instance = this;
 
-        currentBag = new ArrayList();
-        nextBag = new ArrayList();
+        currentBag = new List<int>() { 0, 1, 2, 3, 4, 5, 6 };
+        nextBag = new List<int>() { 0, 1, 2, 3, 4, 5, 6 };
         Random.InitState(randomSeed);
 
         nextPiece = 0;
@@ -40,12 +42,25 @@ public class TetrisRandomGenerator : MonoBehaviour
         HideAllNextPieces();
     }
 
-    public IEnumerator FillBags()
+    public void ShuffleBag(List<int> bag)
     {
         nextPiece = 0;
 
-        yield return StartCoroutine(FillBag(currentBag));
-        StartCoroutine(FillBag(nextBag));
+        for (int i = bag.Count - 1; i > 0; i--)
+        {
+            int randomIndex = Random.Range(0, i);
+            int tmp = bag[i];
+            bag[i] = bag[randomIndex];
+            bag[randomIndex] = tmp;
+        }
+    }
+
+    public void ShuffleBags()
+    {
+        nextPiece = 0;
+
+        ShuffleBag(currentBag);
+        ShuffleBag(nextBag);
     }
 
     IEnumerator FillBag(ArrayList bag)
@@ -90,7 +105,7 @@ public class TetrisRandomGenerator : MonoBehaviour
         {
             currentBag[i] = nextBag[i];
         }
-        StartCoroutine(FillBag(nextBag));
+        ShuffleBag(nextBag);
     }
 
     public PieceType GetNextPiece()

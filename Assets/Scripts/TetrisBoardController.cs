@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum BotVersion
+{
+    TetrisBot, MCTSBot, HumanizedBot
+}
+
 public class TetrisBoardController : MonoBehaviour
 {
     private TileBehaviour[,] board;
@@ -29,17 +34,21 @@ public class TetrisBoardController : MonoBehaviour
     public int linesToLevelUp = 10;
     public int[] possibleScores;
 
+    public BotVersion botVersion;
+
     private int level;
     private int linesCleared;
     private int score;
+    private int pieces;
 
     public bool botPlayer = true;
-    private MCTSBot bot;
+    private TetrisBot bot;
     public float initialActionTime = 10;
     public float nextActionsTime = 1;
     public float holesWeight;
     public float bumpinessWeight;
     public float linesWeight;
+    public float rowHolesWeight;
 
     public bool weightEvolution = false;
 
@@ -72,10 +81,10 @@ public class TetrisBoardController : MonoBehaviour
     {
         board = new TileBehaviour[boardWidth, boardHeight];
         level = 1;
-        linesCleared = score = 0;
+        linesCleared = score = pieces = 0;
         UpdateUI();
 
-        StartCoroutine(TetrisRandomGenerator.Instance.FillBags());
+        TetrisRandomGenerator.Instance.ShuffleBags();
 
         while (!TetrisRandomGenerator.Instance.GetBagsPrepared())
             yield return null;
@@ -89,7 +98,18 @@ public class TetrisBoardController : MonoBehaviour
 
     IEnumerator BotCoroutine()
     {
-        bot = new MCTSBot(TetrisRandomGenerator.Instance.GetNextPieces(), initialActionTime * 0.9f, 10000);
+        switch(botVersion)
+        {
+            case BotVersion.TetrisBot:
+                bot = new TetrisBot();
+                break;
+            case BotVersion.MCTSBot:
+                bot = new MCTSTetrisBot(TetrisRandomGenerator.Instance.GetNextPieces(), initialActionTime * 0.9f);
+                break;
+            case BotVersion.HumanizedBot:
+                bot = new HumanizedTetrisBot(TetrisRandomGenerator.Instance.GetNextPieces(), initialActionTime * 0.9f);
+                break;
+        }
 
         yield return new WaitForSeconds(initialActionTime);
 
@@ -309,8 +329,11 @@ public class TetrisBoardController : MonoBehaviour
         }
 
         currentPiece = pieceEmitter.EmitPiece();
+        pieces++;
 
-        if (botPlayer) bot.AddNewPiece(TetrisRandomGenerator.Instance.GetLastNextPiece());
+        UpdateUI();
+
+        if (botPlayer && botVersion != BotVersion.TetrisBot) ((MCTSTetrisBot)bot).AddNewPiece(TetrisRandomGenerator.Instance.GetLastNextPiece());
     }
 
     void ClearLines(List<int> lineIndices)
@@ -356,13 +379,12 @@ public class TetrisBoardController : MonoBehaviour
         {
             level++;
         }
-
-        UpdateUI();
     }
 
     void UpdateUI()
     {
         UIController.UpdateScoreText(score);
+        UIController.UpdatePiecesText(pieces);
         UIController.UpdateLinesText(linesCleared);
         UIController.UpdateLevelText(level);
     }

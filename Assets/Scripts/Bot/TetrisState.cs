@@ -37,7 +37,12 @@ public class TetrisState
     int boardWidth;
     int boardHeight;
 
+    int maxHeight = 20;
+
     int clearedLines;
+
+    bool terminalState = false;
+    bool BOOMTetris = false;
 
     public TetrisState()
     {
@@ -49,6 +54,7 @@ public class TetrisState
     {
         for (int i = 0; i < binaryTiles.Length; i++)
         {
+            if (binaryTiles[i].y >= maxHeight) terminalState = true;
             board[binaryTiles[i].y] |= binaryTiles[i].x;
         }
 
@@ -86,9 +92,11 @@ public class TetrisState
             }
             board[y] = 0;
         }
+
+        if (clearedLines == 4) BOOMTetris = true;
     }
 
-    public void DoAction(PieceModel piece, PieceAction action, bool aux = false)
+    public void DoAction(PieceModel piece, PieceAction action)
     {
         piece.DoAction(action, this);
 
@@ -110,9 +118,10 @@ public class TetrisState
             int binMask = 1 << x;
             bool hitTile = false;
 
-            for(int y = boardHeight - 1; y >= 0; y--)
+            if (IsColFull(x)) continue;
+            for (int y = boardHeight - 1; y >= 0; y--)
             {
-                if (IsColFull(x)) continue;
+                if (IsRowFull(y)) continue;
                 if ((board[y] & binMask) > 0) hitTile = true;
                 if (hitTile && (board[y] & binMask) == 0) holeCount++;
             }
@@ -136,6 +145,38 @@ public class TetrisState
         return bumpiness;
     }
 
+    public int GetRowsWithHoles()
+    {
+        int rowsCount = 0;
+        bool[] checkedRows = new bool[boardHeight];
+
+        for (int x = 0; x < boardWidth; x++)
+        {
+            int binMask = 1 << x;
+            bool hitTile = false;
+
+            if (IsColFull(x)) continue;
+            for (int y = boardHeight - 1; y >= 0; y--)
+            {
+                if (IsRowFull(y)) continue;
+
+                if ((board[y] & binMask) > 0) hitTile = true;
+                if (hitTile && (board[y] & binMask) == 0 && !checkedRows[y]) { rowsCount++; checkedRows[y] = true; }
+            }
+        }
+
+        return rowsCount;
+    }
+
+    public int GetCurrentHeight()
+    {
+        for(int y = board.Length - maxHeight; y < board.Length; y++)
+        {
+            if (!IsRowEmpty(y)) return maxHeight - y;
+        }
+        return maxHeight;
+    }
+
     private bool IsColFull(int x)
     {
         int binMask = 1 << x;
@@ -149,6 +190,11 @@ public class TetrisState
     private bool IsRowFull(int y)
     {
         return board[y] == fullRow;
+    }
+
+    private bool IsRowEmpty(int y)
+    {
+        return board[y] == 0;
     }
 
     private int GetColHeight(int x)
@@ -174,16 +220,44 @@ public class TetrisState
         return true;
     }
 
-    public bool IsTerminal(PieceModel pieceModel)
+    public int GetOccupiedTilesInColumn(int x)
     {
-        return !pieceModel.CanPieceMove(Vector2Int.zero, this);
+        int count = 0;
+
+        int binMask = 1 << x;
+        for(int y = boardHeight - 1; y >= 0; y--)
+        {
+            if ((board[y] & binMask) > 0) count++;
+        }
+        return count;
+    }
+
+    public bool IsTerminal()
+    {
+        return terminalState;
+    }
+
+    public bool IsTetris()
+    {
+        return BOOMTetris;
     }
 
     public float GetScore()
     {
-        return -(TetrisBoardController.Instance.holesWeight * GetHoleCount()) 
-            - (TetrisBoardController.Instance.bumpinessWeight * GetBumpiness()) 
+        return -(TetrisBoardController.Instance.holesWeight * GetHoleCount())
+            - (TetrisBoardController.Instance.bumpinessWeight * GetBumpiness())
+            - (TetrisBoardController.Instance.rowHolesWeight * GetRowsWithHoles())
             + (TetrisBoardController.Instance.linesWeight * GetClearedLines());
+    }
+
+    public float GetHumanizedScore()
+    {
+        return GetScore() - (GetOccupiedTilesInColumn(0) * GetHumanizedWeight());
+    }
+
+    private float GetHumanizedWeight()
+    {
+        return 2 * GetCurrentHeight() / maxHeight;
     }
 
     public List<PieceAction> GetActions(PieceModel pieceModel)
