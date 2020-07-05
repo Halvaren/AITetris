@@ -4,18 +4,27 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Types of a piece
+/// </summary>
 public enum PieceType
 {
     I, J, L, O, S, T, Z
 }
 
+/// <summary>
+/// A piece is a group of four tiles, it has a type that indicates which position combination these tiles are forming
+/// A piece can move left, right and down, can rotate clockwise and counterclockwise, and can lock in the board
+/// A piece is spawned by the PieceEmitter
+/// </summary>
 public class PieceBehaviour : MonoBehaviour
 {
-    public PieceType pieceType { get; private set; }
-    public TileBehaviour[] tiles;
+    public PieceType pieceType { get; private set; } //Type of the piece
+    public TileBehaviour[] tiles; //Tiles that conform the piece
+    
+    private int rotationIndex; //Index that indicates in which rotation the piece is
 
-    private int rotationIndex;
-
+    //Bool variables to notice if the piece has to be locked in the board, or the user has some time to avoid this lock
     private bool downLimitReached;
     private bool locked;
     private bool moved;
@@ -24,8 +33,8 @@ public class PieceBehaviour : MonoBehaviour
 
     #region Global variables
 
-    float lockedLimitTime;
-    Vector2Int spawnLocation;
+    float lockedLimitTime; //The time between the piece touches some other piece or the bottom side of the board, and it locks
+    Vector2Int spawnLocation; //Position inside the board where the piece will spawn
 
     #endregion
 
@@ -38,6 +47,20 @@ public class PieceBehaviour : MonoBehaviour
         moved = true;
     }
 
+    /// <summary>
+    /// Initializes the global variables
+    /// </summary>
+    void InitializeGlobalVariables()
+    {
+        lockedLimitTime = TetrisBoardController.Instance.lockedLimitTime;
+        spawnLocation = TetrisBoardController.Instance.spawnPos;
+    }
+
+    /// <summary>
+    /// Initializes the piece type, the material of the tiles, the tiles' positions and moves the piece to its spawn position
+    /// </summary>
+    /// <param name="newType"></param>
+    /// <param name="material"></param>
     public void SpawnPiece(PieceType newType, Material material)
     {
         pieceType = newType;
@@ -76,6 +99,11 @@ public class PieceBehaviour : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// It checks if the piece can move a specific amount of movement by checking if all of the tiles can move
+    /// </summary>
+    /// <param name="movement"></param>
+    /// <returns></returns>
     public bool CanPieceMove(Vector2Int movement)
     {
         for (int i = 0; i < tiles.Length; i++)
@@ -88,15 +116,17 @@ public class PieceBehaviour : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Returns the coordinates of the tiles
+    /// </summary>
+    /// <returns></returns>
     public Vector2Int[] GetTileCoords()
     {
-        List<Vector2Int> tileCoords = new List<Vector2Int>();
+        Vector2Int[] tileCoords = new Vector2Int[4];
 
         for (int i = 0; i < tiles.Length; i++)
         {
-            if (tiles[i] == null)
-                continue;
-            tileCoords.Add(tiles[i].Coordinates);
+            tileCoords[i] = tiles[i].Coordinates;
         }
 
         Vector2Int[] result = tileCoords.ToArray();
@@ -104,6 +134,11 @@ public class PieceBehaviour : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    /// Checks if there aren't no more tiles conforming this piece, because they have been deleted when lines have been cleared. It is useful to delete the piece
+    /// GameObject when there aren't no more tile
+    /// </summary>
+    /// <returns></returns>
     public bool AnyTilesLeft()
     {
         for (int i = 0; i < tiles.Length; i++)
@@ -114,6 +149,12 @@ public class PieceBehaviour : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Moves the piece a specific amount of movement, only if it can
+    /// </summary>
+    /// <param name="movement"></param>
+    /// <param name="test">If it is true, that means the method has been called in a testing context, to test something visually, so it doesn't to lock the piece if it's moved down</param>
+    /// <returns></returns>
     public bool MovePiece(Vector2Int movement, bool test = false)
     {
         bool canMove = CanPieceMove(movement);
@@ -134,6 +175,10 @@ public class PieceBehaviour : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Moves the piece to a specific coordinates
+    /// </summary>
+    /// <param name="tileCoords"></param>
     public void MovePiece(Vector2Int[] tileCoords)
     {
         for(int i = 0; i < tileCoords.Length; i++)
@@ -142,6 +187,11 @@ public class PieceBehaviour : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Rotates the piece in a specific direction
+    /// </summary>
+    /// <param name="clockwise"></param>
+    /// <param name="shouldOffset">Indicates if the piece has also to move to make a proper rotation</param>
     public void RotatePiece(bool clockwise, bool shouldOffset)
     {
         int oldRotationIndex = rotationIndex;
@@ -157,12 +207,19 @@ public class PieceBehaviour : MonoBehaviour
 
         bool canOffset = Offset(oldRotationIndex, rotationIndex);
 
+        //If the piece should offset but it can't, then the opposite rotation has to be done
         if (!canOffset) RotatePiece(!clockwise, false);
         else moved = true;
     }
 
     int Mod(int x, int m) { return (x % m + m) % m; }
 
+    /// <summary>
+    /// Checks if a piece can offset, offsetting it if it's the case, and returning a bool with the result. It uses the offset data in the TetrisData class
+    /// </summary>
+    /// <param name="oldRotationIndex"></param>
+    /// <param name="newRotationIndex"></param>
+    /// <returns></returns>
     bool Offset(int oldRotationIndex, int newRotationIndex)
     {
         Vector2Int offsetVal1, offsetVal2, endOffset = Vector2Int.zero;
@@ -191,6 +248,9 @@ public class PieceBehaviour : MonoBehaviour
         return movePossible;
     }
 
+    /// <summary>
+    /// Locks all the tiles of a piece, testing if it causes a game over or not. In that second case, it calls the TetrisBoardController to check if there are lines to clear
+    /// </summary>
     public void SetPiece()
     {
         for (int i = 0; i < tiles.Length; i++)
@@ -198,6 +258,7 @@ public class PieceBehaviour : MonoBehaviour
             if (!tiles[i].SetTile())
             {
                 TetrisBoardController.Instance.GameOver(tiles);
+                this.enabled = false;
                 return;
             }
         }
@@ -205,12 +266,12 @@ public class PieceBehaviour : MonoBehaviour
         this.enabled = false;
     }
 
-    void InitializeGlobalVariables()
-    {
-        lockedLimitTime = TetrisBoardController.Instance.lockedLimitTime;
-        spawnLocation = TetrisBoardController.Instance.spawnPos;
-    }
-
+    /// <summary>
+    /// The normal behaviour is that the game is moving the piece down when some time has passed, 
+    /// but it can be a hard drop, which is when the user decides to move the piece down until it collides with something in once
+    /// </summary>
+    /// <param name="hardDrop"></param>
+    /// <param name="test">If that's true, that means it doesn't have to lock the piece when is harddropping</param>
     public void DropPiece(bool hardDrop = false, bool test = false)
     {
         if (hardDrop)
@@ -221,14 +282,14 @@ public class PieceBehaviour : MonoBehaviour
         {
             downLimitReached = !MovePiece(Vector2Int.down);
 
-            if (downLimitReached)
+            if (downLimitReached) //If the down limit has been reached
             {
-                if (!moved || locked)
+                if (!moved || locked) //And the piece hasn't move between drops or the locked bool indicates that the piece has to lock, it does
                 {
                     SetPiece();
                     return;
                 }
-                else
+                else //In any other case, then the locked coroutine will begin
                 {
                     if (lockedCoroutine == null)
                     {
@@ -240,6 +301,10 @@ public class PieceBehaviour : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Coroutine that starts a timer and changes locked value to true after some time to make the piece locked after this time
+    /// </summary>
+    /// <returns></returns>
     IEnumerator GettingLockedCoroutine()
     {
         yield return new WaitForSeconds(lockedLimitTime);

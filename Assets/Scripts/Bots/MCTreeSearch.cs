@@ -42,7 +42,7 @@ public class MCTreeSearch
 
     private void PrintTree(MCTSNode rootNode)
     {
-        LogWriter.Instance.Initialize();
+        LogWriter.Instance.InitializeMCTreeSearchLog();
 
         LogWriter.Instance.WriteMCTreeSearch("Number of nodes: " + nNodes);
         LogWriter.Instance.WriteMCTreeSearch("Current height: " + currentHeight);

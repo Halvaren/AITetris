@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class TetrisData
 {
+    //Positions of the tiles in the original position of each piece
     #region Tile relative positions
 
     public static Vector2Int[] IRelativePositions = new Vector2Int[4]
@@ -64,6 +65,7 @@ public class TetrisData
 
     #endregion
 
+    //When a piece rotates when it's touching other pieces, it has to offset in order to not occupy already occupied positions. This data is extracted from original Tetris sources
     #region Offset data
 
     public static Vector2Int[,] JLSTZ_OFFSET_DATA = new Vector2Int[5, 4]

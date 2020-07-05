@@ -7,6 +7,9 @@ public class PieceEmitter : MonoBehaviour
     public GameObject piecePrefab;
     public Material[] pieceMaterials;
 
+    /// <summary>
+    /// Gets the next piece from the TetrisRandomGenerator, instantiates it, initializes it and returns it to the TetrisBoardController
+    /// </summary>
     public PieceBehaviour EmitPiece()
     {
         PieceType pieceType = TetrisRandomGenerator.Instance.GetNextPiece();

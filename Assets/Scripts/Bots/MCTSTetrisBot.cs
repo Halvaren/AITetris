@@ -104,7 +104,7 @@ public class MCTSTetrisBot : TetrisBot
         MCTSNode bestChild = null;
         float bestScore = -Mathf.Infinity;
 
-        //Debug.Log("Scores ");
+        TetrisBoardController.Instance.debugText = "Scores \n";
 
         foreach (MCTSNode child in rootNode.children)
         {
@@ -115,8 +115,9 @@ public class MCTSTetrisBot : TetrisBot
                 //Debug.Log("Score " + score);
                 //Debug.Log("X " + child.action.xCoord + " Rotation " + child.action.rotationIndex);
             }
-            //Debug.Log("Score " + child.score);
-            //Debug.Log("X " + child.action.xCoord + " Rotation " + child.action.rotationIndex);
+            TetrisBoardController.Instance.debugText += "Score " + score + "\n";
+            TetrisBoardController.Instance.debugText += "State: " + child.state.ToString() + "\n";
+            TetrisBoardController.Instance.debugText += "X " + child.action.xCoord + " Rotation " + child.action.rotationIndex + "\n";
 
             if (score >= bestScore)
             {
@@ -125,10 +126,10 @@ public class MCTSTetrisBot : TetrisBot
             }
         }
 
-        /*Debug.Log("Chosen child " + bestChild.currentPiece.pieceType);
-        Debug.Log("Score " + bestScore);
-        Debug.Log("X " + bestChild.action.xCoord + " Rotation " + bestChild.action.rotationIndex);
-        */
+        TetrisBoardController.Instance.debugText += "Chosen child " + bestChild.currentPiece.pieceType + "\n";
+        TetrisBoardController.Instance.debugText += "Score " + bestScore + "\n";
+        TetrisBoardController.Instance.debugText += "State: " + bestChild.state.ToString() + "\n";
+        TetrisBoardController.Instance.debugText += "X " + bestChild.action.xCoord + " Rotation " + bestChild.action.rotationIndex + "\n";
 
         return bestChild;
     }

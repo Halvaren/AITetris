@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Modelization of the Tetris board
+/// </summary>
 public class TetrisState
 {
+    //Binary number are easy to store and easy to manage if you do it correctly
     int[] board = new int[24] //Está bocaabajo
     {
         0b0000000000,
@@ -102,7 +106,7 @@ public class TetrisState
 
         while (piece.Move(Vector2Int.down, this)) { }
 
-        LockPiece(piece.GetBinaryTiles(piece.GetCoordinates()));
+        LockPiece(piece.GetBinaryTiles());
     }
 
     public int GetClearedLines()
@@ -257,7 +261,7 @@ public class TetrisState
 
     private float GetHumanizedWeight()
     {
-        return 2 * GetCurrentHeight() / maxHeight;
+        return TetrisBoardController.Instance.humanizedWeight * GetCurrentHeight() / maxHeight;
     }
 
     public List<PieceAction> GetActions(PieceModel pieceModel)
@@ -327,16 +331,18 @@ public class TetrisState
     {
         string result = "";
 
-        for(int y = board.Length - 1; y >= 0; y--)
+        /*for(int y = board.Length - 1; y >= 0; y--)
         {
             string number = Convert.ToString(board[y], 2);
             for (int i = 0; i < 10 - number.Length; i++) result += "0";
             result += number + "\n";
-        }
+        }*/
 
         result += "Holes: " + GetHoleCount() + "\n";
         result += "Bumpiness: " + GetBumpiness() + "\n";
         result += "Lines: " + GetClearedLines() + "\n";
+        result += "Rows with holes: " + GetRowsWithHoles() + "\n";
+        result += "Tiles in first column: " + GetOccupiedTilesInColumn(0) + "\n";
 
         return result;
     }

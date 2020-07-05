@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Modelization of the class PieceBehaviour. Basically it has the same baic methods, but it's no formed by TileBehaviour objects anymore
+/// </summary>
 public class PieceModel
 {
     public PieceType pieceType;
 
-    private Vector2Int[] binaryTiles;
-    private Vector2Int[] originalTileCoordinates;
-    private Vector2Int[] tileCoordinates;
+    private Vector2Int[] binaryTiles; //Array that contains pairs of ints. The first int of each pair is a binary number that indicates the X position of a tile, and the second one, the Y position but it's a decimal number
+    private Vector2Int[] originalTileCoordinates; //Array that contains the position of the tiles when the piece is spawned. It is useful to reset the piece easily when a bot is calculating the best move
+    private Vector2Int[] tileCoordinates; //Array that contains the current position of the tiles
 
     Vector2Int[] rotationClockwiseMatrix = new Vector2Int[2] { new Vector2Int(0, -1), new Vector2Int(1, 0) };
     Vector2Int[] rotationCounterclockwiseMatrix = new Vector2Int[2] { new Vector2Int(0, 1), new Vector2Int(-1, 0) };
@@ -53,6 +56,8 @@ public class PieceModel
         binaryTiles = new Vector2Int[4];
     }
 
+    #region Getters & setters
+
     public Vector2Int[] GetCoordinates()
     {
         return tileCoordinates;
@@ -81,11 +86,11 @@ public class PieceModel
         }
     }
 
-    public Vector2Int[] GetBinaryTiles(Vector2Int[] coords)
+    public Vector2Int[] GetBinaryTiles()
     {
-        for(int i = 0; i < coords.Length; i++)
+        for(int i = 0; i < tileCoordinates.Length; i++)
         {
-            binaryTiles[i] = GetBinaryTile(coords[i]);
+            binaryTiles[i] = GetBinaryTile(tileCoordinates[i]);
         }
 
         return binaryTiles;
@@ -100,6 +105,14 @@ public class PieceModel
         return binaryTile;
     }
 
+    #endregion
+
+    /// <summary>
+    /// Giving a TetrisState and a amount of movement, it is calculated if the piece could move
+    /// </summary>
+    /// <param name="movement"></param>
+    /// <param name="tetrisState"></param>
+    /// <returns></returns>
     public bool CanPieceMove(Vector2Int movement, TetrisState tetrisState)
     {
         for(int i = 0; i < tileCoordinates.Length; i++)
@@ -118,6 +131,12 @@ public class PieceModel
         return true;
     }
 
+    /// <summary>
+    /// Moves the piece model, if it's possible
+    /// </summary>
+    /// <param name="movement"></param>
+    /// <param name="tetrisState"></param>
+    /// <returns></returns>
     public bool Move(Vector2Int movement, TetrisState tetrisState)
     {
         bool canMove = CanPieceMove(movement, tetrisState);
@@ -133,6 +152,10 @@ public class PieceModel
         return canMove;
     }
 
+    /// <summary>
+    /// Rotates the piece. Since the piece model is thought for bot interaction, the rotations will be only done in the spawn position, so it's not necessary to offset the piece
+    /// </summary>
+    /// <param name="clockwise"></param>
     public void Rotate(bool clockwise = true)
     {
         Vector2Int originPos = tileCoordinates[0];
@@ -152,6 +175,11 @@ public class PieceModel
         }
     }
 
+    /// <summary>
+    /// Giving a TetrisState and a PieceAction, the piece model reproduces this action
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="tetrisState"></param>
     public void DoAction(PieceAction action, TetrisState tetrisState)
     {
         for (int i = 0; i < action.rotationIndex; i++)
@@ -162,6 +190,10 @@ public class PieceModel
         Move(new Vector2Int(action.xCoord - tileCoordinates[0].x, 0), tetrisState);
     }
 
+    /// <summary>
+    /// Clones a piece. It's unused for now
+    /// </summary>
+    /// <returns></returns>
     public PieceModel ClonePiece()
     {
         PieceModel newPiece = new PieceModel(pieceType);

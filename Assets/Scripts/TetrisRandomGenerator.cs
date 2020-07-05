@@ -1,21 +1,23 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.AnimatedValues;
 using UnityEngine;
 
+/// <summary>
+/// The random system of the modern Tetris uses a bag which contains the 7 type of pieces in the game, shuffled, and the game extracts this pieces in order.
+/// When a bag is empty, there is another bag, also shuffled, and so on. In the actual random system, there are some restrictions, but they have been removed
+/// in order to keep this aspect simple
+/// </summary>
 public class TetrisRandomGenerator : MonoBehaviour
 {
-    private List<int> currentBag;
-    private List<int> nextBag;
+    private List<int> currentBag; //Bag where the game is picking piece types
+    private List<int> nextBag; //Auxiliar bag to avoid charging times when the current bag is empty
 
-    private int nextPiece;
+    private int nextPiece; //Points to the next piece from the current bag that is going to be spawned
 
-    private int lastIPosition;
-    private PieceType lastPieceInPreviousBag;
-    public int maxPiecesBetweenIs;
+    public Transform nextPiecesDisplayer; //GameObject where are going to be displayed the next pieces
 
-    public Transform nextPiecesDisplayer;
-
+    private System.Random rnd;
     public int randomSeed = 42;
 
     private static TetrisRandomGenerator instance;
@@ -33,28 +35,33 @@ public class TetrisRandomGenerator : MonoBehaviour
 
         currentBag = new List<int>() { 0, 1, 2, 3, 4, 5, 6 };
         nextBag = new List<int>() { 0, 1, 2, 3, 4, 5, 6 };
-        Random.InitState(randomSeed);
+        rnd = new System.Random(randomSeed); //The random seed is set in order to make a better testing and debugging
 
         nextPiece = 0;
-
-        lastIPosition = -1;
 
         HideAllNextPieces();
     }
 
+    /// <summary>
+    /// Shuffles all the elements of a given list
+    /// </summary>
+    /// <param name="bag"></param>
     public void ShuffleBag(List<int> bag)
     {
         nextPiece = 0;
 
         for (int i = bag.Count - 1; i > 0; i--)
         {
-            int randomIndex = Random.Range(0, i);
+            int randomIndex = rnd.Next(0, i);
             int tmp = bag[i];
             bag[i] = bag[randomIndex];
             bag[randomIndex] = tmp;
         }
     }
 
+    /// <summary>
+    /// Initializes both bags
+    /// </summary>
     public void ShuffleBags()
     {
         nextPiece = 0;
@@ -63,41 +70,9 @@ public class TetrisRandomGenerator : MonoBehaviour
         ShuffleBag(nextBag);
     }
 
-    IEnumerator FillBag(ArrayList bag)
-    {
-        bag.Clear();
-
-        bool IPieceInBag = false;
-        while(bag.Count < 7)
-        {
-            PieceType newPiece;
-            if(lastIPosition != -1 && !IPieceInBag && ((7 - lastIPosition) + bag.Count) >= maxPiecesBetweenIs)
-            {
-                newPiece = PieceType.I;
-            }
-            else
-            {
-                newPiece = (PieceType) Random.Range(0, 7); //, 1);
-            }
-            //bag.Add(newPiece);
-
-
-            if (!bag.Contains(newPiece) && (bag.Count > 0 || newPiece != lastPieceInPreviousBag))
-            {
-                if(newPiece == PieceType.I)
-                {
-                    IPieceInBag = true;
-                    lastIPosition = currentBag.Count;
-                }
-                bag.Add(newPiece);
-
-                if (bag.Count == 7) lastPieceInPreviousBag = newPiece;
-            }
-
-            yield return new WaitForEndOfFrame();
-        }
-    }
-
+    /// <summary>
+    /// Changes the elements of the current bag with the elements of the next bag and shuffles the next bag
+    /// </summary>
     void ChangeBag()
     {
         nextPiece = 0;
@@ -108,6 +83,10 @@ public class TetrisRandomGenerator : MonoBehaviour
         ShuffleBag(nextBag);
     }
 
+    /// <summary>
+    /// Returns the next piece of the current bag. It changes the bags in case the current bag is empty
+    /// </summary>
+    /// <returns></returns>
     public PieceType GetNextPiece()
     {
         PieceType result = (PieceType) currentBag[nextPiece++];
@@ -120,6 +99,10 @@ public class TetrisRandomGenerator : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    /// This method is used by the MCTSTetrisBot and HumanizedTetrisBot, to know the last piece shown in the nextPiecesDisplayer
+    /// </summary>
+    /// <returns></returns>
     public PieceType GetLastNextPiece()
     {
         PieceType result;
@@ -130,6 +113,10 @@ public class TetrisRandomGenerator : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    /// This method is used by the MCTSTetrisBot and HumanizedTetrisBot, to know the pieces shown in the nextPiecesDisplayer
+    /// </summary>
+    /// <returns></returns>
     public PieceType[] GetNextPieces()
     {
         PieceType[] result = new PieceType[nextPiecesDisplayer.childCount + 1];
@@ -154,6 +141,9 @@ public class TetrisRandomGenerator : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    /// Displays the pieces in the nextPiecesDisplayer
+    /// </summary>
     private void ShowNextPieces()
     {
         HideAllNextPieces();
@@ -176,6 +166,9 @@ public class TetrisRandomGenerator : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Hide the pieces of the nextPiecesDisplayer
+    /// </summary>
     private void HideAllNextPieces()
     {
         foreach (Transform nextPieceDisplayer in nextPiecesDisplayer)
@@ -183,10 +176,5 @@ public class TetrisRandomGenerator : MonoBehaviour
             foreach (Transform nextPiece in nextPieceDisplayer)
                 nextPiece.gameObject.SetActive(false);
         }
-    }
-
-    public bool GetBagsPrepared()
-    {
-        return currentBag.Count == 7 && nextBag.Count == 7;
     }
 }
