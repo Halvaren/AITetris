@@ -1043,8 +1043,8 @@ MonoBehaviour:
   lockedLimitTime: 1
   linesToLevelUp: 10
   possibleScores: 640000002c010000f401000020030000
-  botVersion: 2
-  generation: 0
+  botVersion: 3
+  generation: 30
   initialActionTime: 1
   nextActionsTime: 0.5
   holesWeight: 0
@@ -1052,10 +1052,13 @@ MonoBehaviour:
   linesWeight: 0
   rowHolesWeight: 0
   humanizedWeight: 0
-  training: 1
+  training: 0
   populationSize: 10
   mutationRate: 0.1
   pieceLimitTraining: 150
+  testing: 1
+  initialCalculationTime: 1
+  decreasingCalculationTimeFactor: 0.05
   debugMode: 0
   pieceEmitter: {fileID: 1539147472}
   UIController: {fileID: 1530482261}
@@ -3283,9 +3286,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MCTreeSearchLogFilePath: Assets/Resources/MCTreeSearchLog.txt
-  BasicBotTrainingLogFilePath: Assets/Resources/BasicBotTrainingLog.txt
-  MCTSBotTrainingLogFilePath: Assets/Resources/MCTSBotTrainingLog.txt
-  HumanBotTrainingLogFilePath: Assets/Resources/HumanBotTrainingLog.txt
+  BasicBotTestingLogFile: Assets/Resources/BasicBotTestingLog.txt
+  MCTSBotTestingLogFile: Assets/Resources/MCTSBotTestingLog.txt
+  HumanBotTestingLogFile: Assets/Resources/HumanBotTestingLog.txt
   BasicBotGensLogFile: Assets/Resources/BasicBotGensLog.txt
   MCTSBotGensLogFile: Assets/Resources/MCTSBotGensLogFile.txt
   HumanBotGensLogFile: Assets/Resources/HumanBotGensLogFile.txt

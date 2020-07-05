@@ -22,9 +22,9 @@ public class LogWriter : MonoBehaviour
 
     public string MCTreeSearchLogFilePath = "Assets/Resources/MCTreeSearchLog.txt";
 
-    public string BasicBotTrainingLogFilePath = "Assets/Resources/BasicBotTrainingLog.txt";
-    public string MCTSBotTrainingLogFilePath = "Assets/Resources/MCTSBotTrainingLog.txt";
-    public string HumanBotTrainingLogFilePath = "Assets/Resources/HumanBotTrainingLog.txt";
+    public string BasicBotTestingLogFile = "Assets/Resources/BasicBotTestingLog.txt";
+    public string MCTSBotTestingLogFile = "Assets/Resources/MCTSBotTestingLog.txt";
+    public string HumanBotTestingLogFile = "Assets/Resources/HumanBotTestingLog.txt";
 
     public string BasicBotGensLogFile = "Assets/Resources/BasicBotGensLog.txt";
     public string MCTSBotGensLogFile = "Assets/Resources/MCTSBotGensLogFile.txt";
@@ -61,6 +61,7 @@ public class LogWriter : MonoBehaviour
             return null;
         }
         string json = File.ReadAllText(path);
+        Debug.Log(json);
 
         return JsonHelper.FromJsonArray<TetrisGeneration>(json);
     }
@@ -117,6 +118,15 @@ public class LogWriter : MonoBehaviour
         }
     }
 
+    public void WriteTesting(BotVersion botVersion, TestingData data)
+    {
+        string path = GetBotVersionTestingLogFilePath(botVersion);
+
+        string json = JsonUtility.ToJson(data, true);
+
+        File.AppendAllText(path, json);
+    }
+
     private string GetBotVersionGensLogFilePath(BotVersion botVersion)
     {
         switch (botVersion)
@@ -129,6 +139,22 @@ public class LogWriter : MonoBehaviour
 
             case BotVersion.HumanizedBot:
                 return HumanBotGensLogFile;
+        }
+        return "";
+    }
+
+    private string GetBotVersionTestingLogFilePath(BotVersion botVersion)
+    {
+        switch (botVersion)
+        {
+            case BotVersion.TetrisBot:
+                return BasicBotTestingLogFile;
+
+            case BotVersion.MCTSBot:
+                return MCTSBotTestingLogFile;
+
+            case BotVersion.HumanizedBot:
+                return HumanBotTestingLogFile;
         }
         return "";
     }

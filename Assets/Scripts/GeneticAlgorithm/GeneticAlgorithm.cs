@@ -146,6 +146,8 @@ namespace Assets.Scripts.GeneticAlgorithm
             currentGeneration.bestScore = best.GetScore();
             currentGeneration.bestWeights = best.GetWeights();
 
+            currentGeneration.scoreMean = scoreSum / population.Count;
+
             currentGeneration.pieces = best.GetPieces();
             currentGeneration.level = best.GetLevel();
             currentGeneration.lines = best.GetLines();

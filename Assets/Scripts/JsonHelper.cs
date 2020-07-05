@@ -17,7 +17,7 @@ namespace Assets.Scripts
             ArrayWrapper<T> wrapper = JsonUtility.FromJson<ArrayWrapper<T>>(json);
             
             if (wrapper == null) return null;
-            return wrapper.Items;
+            return wrapper.Generations;
         }
 
         public static List<T> FromJsonList<T>(string json)
@@ -25,34 +25,34 @@ namespace Assets.Scripts
             ListWrapper<T> wrapper = JsonUtility.FromJson<ListWrapper<T>>(json);
 
             if (wrapper == null) return null;
-            return wrapper.Items;
+            return wrapper.Generations;
         }
 
         public static string ToJson<T>(T[] array)
         {
             ArrayWrapper<T> wrapper = new ArrayWrapper<T>();
-            wrapper.Items = array;
+            wrapper.Generations = array;
             return JsonUtility.ToJson(wrapper);
         }
 
         public static string ToJson<T>(T[] array, bool prettyPrint)
         {
             ArrayWrapper<T> wrapper = new ArrayWrapper<T>();
-            wrapper.Items = array;
+            wrapper.Generations = array;
             return JsonUtility.ToJson(wrapper, prettyPrint);
         }
 
         public static string ToJson<T>(List<T> list)
         {
             ListWrapper<T> wrapper = new ListWrapper<T>();
-            wrapper.Items = list;
+            wrapper.Generations = list;
             return JsonUtility.ToJson(wrapper);
         }
 
         public static string ToJson<T>(List<T> list, bool prettyPrint)
         {
             ListWrapper<T> wrapper = new ListWrapper<T>();
-            wrapper.Items = list;
+            wrapper.Generations = list;
 
             return JsonUtility.ToJson(wrapper, prettyPrint);
         }
@@ -60,13 +60,13 @@ namespace Assets.Scripts
         [Serializable]
         private class ArrayWrapper<T>
         {
-            public T[] Items;
+            public T[] Generations;
         }
 
         [Serializable]
         private class ListWrapper<T>
         {
-            public List<T> Items;
+            public List<T> Generations;
         }
     }
 }

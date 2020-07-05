@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.GeneticAlgorithm;
+﻿using Assets.Scripts;
+using Assets.Scripts.GeneticAlgorithm;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -75,6 +76,10 @@ public class TetrisBoardController : MonoBehaviour
     public float rowHolesWeight; //It will be multiplied by the number of rows that have at least one hole.
     public float humanizedWeight; //It will be multiplied by the number of tiles in the first column of the board. It is called humanizedWeight because is only used by the HumanizedBot
 
+    #endregion
+
+    #region Genetic algorithm variables
+
     public bool training = false; //If it's true, the genetic algorithm will be executed
 
     private GeneticAlgorithm geneticAlgorithm; //Algorithm that searches the best weight combination for the selected bot version
@@ -83,6 +88,14 @@ public class TetrisBoardController : MonoBehaviour
 
     [Tooltip("Type 0 to keep the game over as the only limit")] 
     public int pieceLimitTraining = 200; //Number of pieces that represents the limit per game when training is on
+
+    #endregion
+
+    #region Testing variables
+
+    public bool testing = false;
+    public float initialCalculationTime = 1.0f;
+    public float decreasingCalculationTimeFactor = 0.05f;
 
     #endregion
 
@@ -163,6 +176,7 @@ public class TetrisBoardController : MonoBehaviour
         {
             if(!training)
             {
+                if (testing) nextActionsTime = initialCalculationTime;
                 PlayBot();
             }
             else
@@ -439,6 +453,10 @@ public class TetrisBoardController : MonoBehaviour
         if (this.linesCleared > level * linesToLevelUp)
         {
             level++;
+            if(botVersion != BotVersion.Player && testing)
+            {
+                nextActionsTime -= decreasingCalculationTimeFactor;
+            }
         }
     }
 
@@ -535,6 +553,7 @@ public class TetrisBoardController : MonoBehaviour
         StopAllCoroutines();
 
         if (training) geneticAlgorithm.SetDataToLastGame(score, pieces, linesCleared, level);
+        if (testing) WriteTestingData();
         InitializeGame();
     }
 
@@ -645,6 +664,19 @@ public class TetrisBoardController : MonoBehaviour
     }
 
     #endregion
+
+    public void WriteTestingData()
+    {
+        TestingData testingData = new TestingData();
+        testingData.lines = linesCleared;
+        testingData.level = level;
+        testingData.score = score;
+        testingData.pieces = pieces;
+
+        testingData.lastCalculationTime = nextActionsTime;
+
+        LogWriter.Instance.WriteTesting(botVersion, testingData);
+    }
 
     #region Debug methods
 

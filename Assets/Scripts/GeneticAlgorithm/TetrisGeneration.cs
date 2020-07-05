@@ -14,6 +14,8 @@ namespace Assets.Scripts.GeneticAlgorithm
     {
         public float[] bestWeights;
         public float bestScore;
+
+        public float scoreMean;
         public int generation;
 
         public int pieces;
