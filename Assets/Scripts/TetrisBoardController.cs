@@ -388,13 +388,13 @@ public class TetrisBoardController : MonoBehaviour
     /// Going through the linesToBeClear list, starting from the first one that has to be cleared, some tiles will be deleted and some tiles will be moved properly
     /// </summary>
     /// <param name="lineIndices"></param>
-    void ClearLines(List<bool> linesToBeClear, int firstClearedLine)
+    void ClearLines(List<bool> linesToBeCleared, int firstClearedLine)
     {
         int clearedLines = 0;
 
-        for (int i = firstClearedLine; i < linesToBeClear.Count; i++)
+        for (int i = firstClearedLine; i < linesToBeCleared.Count; i++)
         {
-            if (linesToBeClear[i])
+            if (linesToBeCleared[i])
             {
                 clearedLines++;
             }

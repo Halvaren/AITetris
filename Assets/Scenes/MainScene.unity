@@ -1043,7 +1043,7 @@ MonoBehaviour:
   lockedLimitTime: 1
   linesToLevelUp: 10
   possibleScores: 640000002c010000f401000020030000
-  botVersion: 3
+  botVersion: 2
   generation: 0
   initialActionTime: 1
   nextActionsTime: 0.5
@@ -1057,7 +1057,6 @@ MonoBehaviour:
   mutationRate: 0.1
   pieceLimitTraining: 150
   debugMode: 0
-  debugText: 
   pieceEmitter: {fileID: 1539147472}
   UIController: {fileID: 1530482261}
 --- !u!4 &456553324

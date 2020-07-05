@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Class node for MCTreeSearch creation. It has a piece, an action (that the piece would play) and a state (where the piece action has just been played)
+/// It also has a score (sum of the scores obtained doing rollouts), some children and one parent
+/// </summary>
 public class MCTSNode
 {
     public int id;
@@ -14,7 +18,7 @@ public class MCTSNode
     public int n;
     public float C = Mathf.Sqrt(2);
 
-    public int height;
+    public int height; //Identifies in which height of the tree search is
 
     public MCTSNode(int id, MCTSNode parent, TetrisState state, PieceAction action, PieceModel currentPiece)
     {
@@ -33,6 +37,10 @@ public class MCTSNode
         if(height > MCTreeSearch.currentHeight) MCTreeSearch.currentHeight = height;
     }
 
+    /// <summary>
+    /// Returns the best of the childs acording to the UCT formula, that tries to balance between exploration and explotation
+    /// </summary>
+    /// <returns></returns>
     public MCTSNode GetBestChild()
     {
         MCTSNode bestChild = null;
@@ -43,11 +51,11 @@ public class MCTSNode
             float childUCB = 0;
             if(child.n == 0)
             {
-                childUCB = Mathf.Infinity; //Posibilidad de cambiar con un epsilon, más aleatoriedad bla bla bla
+                childUCB = Mathf.Infinity;
             }
             else
             {
-                childUCB = child.score / child.n + C * Mathf.Sqrt(Mathf.Log(n) / child.n); //Añadir epsilon
+                childUCB = child.score / child.n + C * Mathf.Sqrt(Mathf.Log(n) / child.n);
             }
 
             if(childUCB >= bestUCB)
@@ -60,11 +68,15 @@ public class MCTSNode
         return bestChild;
     }
 
+    /// <summary>
+    /// Creates the children of this node with a given new piece
+    /// </summary>
+    /// <param name="newCurrentPiece"></param>
     public void ExtendNode(PieceModel newCurrentPiece)
     {
         List<PieceAction> actions = state.GetActions(newCurrentPiece);
 
-        foreach(PieceAction action in actions)
+        foreach(PieceAction action in actions) //Each child is related with one of the possible actions for the newCurrentPiece played in the state of this node
         {
             TetrisState newState = state.CloneState();
             newState.DoAction(newCurrentPiece, action);

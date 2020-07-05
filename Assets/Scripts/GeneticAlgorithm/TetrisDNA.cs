@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-
-namespace Assets.Scripts.GeneticAlgorithm
+﻿namespace Assets.Scripts.GeneticAlgorithm
 {
-    [Serializable]
+    /// <summary>
+    /// It represents an individual from a population of the genetic algorithm. Its genes are the weights and its fitness, the score of the game played
+    /// </summary>
     public class TetrisDNA
     {
         private float[] weightGenes;
         private float score = 0;
 
+        //This data is also stored to log it later in a file
         private int pieces = 0;
         private int lines = 0;
         private int level = 0;
@@ -22,6 +18,9 @@ namespace Assets.Scripts.GeneticAlgorithm
             weightGenes = new float[size];
         }
 
+        /// <summary>
+        /// It is called when an initial population is created
+        /// </summary>
         public void SetRandomWeights()
         {
             for (int i = 0; i < weightGenes.Length; i++)
@@ -30,12 +29,17 @@ namespace Assets.Scripts.GeneticAlgorithm
             }
         }
 
+        /// <summary>
+        /// Before playing a game, the current weights must be set in the board controller
+        /// </summary>
         public void PlayGame()
         {
             TetrisBoardController.Instance.SetWeights(weightGenes);
 
             TetrisBoardController.Instance.PlayBot();
         }
+
+        #region Getters & Setters
 
         public float GetScore()
         {
@@ -87,6 +91,13 @@ namespace Assets.Scripts.GeneticAlgorithm
             return weightGenes;
         }
 
+        #endregion 
+
+        /// <summary>
+        /// Giving another individual, they generate a new one, giving to them their genes, choosing them randomly
+        /// </summary>
+        /// <param name="otherDNA"></param>
+        /// <returns></returns>
         public TetrisDNA Crossover(TetrisDNA otherDNA)
         {
             TetrisDNA child = new TetrisDNA(weightGenes.Length);
@@ -99,13 +110,17 @@ namespace Assets.Scripts.GeneticAlgorithm
             return child;
         }
 
+        /// <summary>
+        /// Giving a probability, it could mutate its genes by a random amount
+        /// </summary>
+        /// <param name="mutationRate"></param>
         public void Mutate(float mutationRate)
         {
             for(int i = 0; i < weightGenes.Length; i++)
             {
                 if(UnityEngine.Random.value < mutationRate)
                 {
-                    weightGenes[i] += UnityEngine.Random.value * 0.1f - 0.05f; //Numeros mágicos!!!!
+                    weightGenes[i] += UnityEngine.Random.value * 0.1f - 0.05f;
                 }
             }
         }

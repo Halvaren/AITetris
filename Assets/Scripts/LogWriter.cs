@@ -6,6 +6,9 @@ using UnityEngine.SocialPlatforms.Impl;
 using Assets.Scripts.GeneticAlgorithm;
 using Assets.Scripts;
 
+/// <summary>
+/// Every reading and writting operation on a log file is done by this class
+/// </summary>
 public class LogWriter : MonoBehaviour
 {
     private static LogWriter instance;
@@ -32,6 +35,8 @@ public class LogWriter : MonoBehaviour
         instance = this;
     }
 
+    #region MCTS methods
+
     public void InitializeMCTreeSearchLog()
     {
         File.WriteAllText(MCTreeSearchLogFilePath, "");
@@ -41,6 +46,10 @@ public class LogWriter : MonoBehaviour
     {
         File.AppendAllText(MCTreeSearchLogFilePath, text + "\n");
     }
+
+    #endregion
+
+    #region Genetic algorithm methods
 
     public TetrisGeneration[] ReadGenerationsArray(BotVersion botVersion)
     {
@@ -123,4 +132,6 @@ public class LogWriter : MonoBehaviour
         }
         return "";
     }
+
+    #endregion
 }

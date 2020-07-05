@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.GeneticAlgorithm
 {
+    /// <summary>
+    /// This class is useful for serializing it and write the result on a log file
+    /// </summary>
     [Serializable]
     public class TetrisGeneration
     {
