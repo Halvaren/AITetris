@@ -1,0 +1,61 @@
+{
+    "score": 150300,
+    "level": 17,
+    "lines": 166,
+    "pieces": 454,
+    "lastCalculationTime": 0.1999998390674591
+}{
+    "score": 208000,
+    "level": 20,
+    "lines": 196,
+    "pieces": 531,
+    "lastCalculationTime": 0.049999844282865527
+}{
+    "score": 217000,
+    "level": 20,
+    "lines": 200,
+    "pieces": 538,
+    "lastCalculationTime": 0.049999844282865527
+}{
+    "score": 207700,
+    "level": 20,
+    "lines": 193,
+    "pieces": 524,
+    "lastCalculationTime": 0.049999844282865527
+}{
+    "score": 194300,
+    "level": 19,
+    "lines": 189,
+    "pieces": 512,
+    "lastCalculationTime": 0.09999984502792359
+}{
+    "score": 153700,
+    "level": 17,
+    "lines": 167,
+    "pieces": 457,
+    "lastCalculationTime": 0.1999998390674591
+}{
+    "score": 155800,
+    "level": 17,
+    "lines": 168,
+    "pieces": 461,
+    "lastCalculationTime": 0.1999998390674591
+}{
+    "score": 187200,
+    "level": 19,
+    "lines": 183,
+    "pieces": 498,
+    "lastCalculationTime": 0.09999984502792359
+}{
+    "score": 217400,
+    "level": 20,
+    "lines": 199,
+    "pieces": 538,
+    "lastCalculationTime": 0.049999844282865527
+}{
+    "score": 230500,
+    "level": 21,
+    "lines": 201,
+    "pieces": 539,
+    "lastCalculationTime": -1.564621925354004e-7
+}

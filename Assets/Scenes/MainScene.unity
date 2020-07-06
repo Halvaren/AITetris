@@ -1043,7 +1043,7 @@ MonoBehaviour:
   lockedLimitTime: 1
   linesToLevelUp: 10
   possibleScores: 640000002c010000f401000020030000
-  botVersion: 3
+  botVersion: 2
   generation: 30
   initialActionTime: 1
   nextActionsTime: 0.5

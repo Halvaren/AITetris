@@ -1,0 +1,91 @@
+{
+    "score": 169400,
+    "level": 17,
+    "lines": 168,
+    "pieces": 454,
+    "lastCalculationTime": 0.1999998390674591
+}{
+    "score": 157300,
+    "level": 16,
+    "lines": 159,
+    "pieces": 434,
+    "lastCalculationTime": 0.24999983608722688
+}{
+    "score": 178200,
+    "level": 17,
+    "lines": 168,
+    "pieces": 450,
+    "lastCalculationTime": 0.1999998390674591
+}{
+    "score": 120600,
+    "level": 15,
+    "lines": 141,
+    "pieces": 388,
+    "lastCalculationTime": 0.29999983310699465
+}{
+    "score": 163200,
+    "level": 16,
+    "lines": 159,
+    "pieces": 430,
+    "lastCalculationTime": 0.24999983608722688
+}{
+    "score": 154300,
+    "level": 17,
+    "lines": 161,
+    "pieces": 442,
+    "lastCalculationTime": 0.1999998390674591
+}{
+    "score": 87500,
+    "level": 13,
+    "lines": 123,
+    "pieces": 345,
+    "lastCalculationTime": 0.39999985694885256
+}{
+    "score": 116900,
+    "level": 14,
+    "lines": 137,
+    "pieces": 377,
+    "lastCalculationTime": 0.3499998450279236
+}{
+    "score": 115800,
+    "level": 14,
+    "lines": 136,
+    "pieces": 372,
+    "lastCalculationTime": 0.3499998450279236
+}{
+    "score": 134500,
+    "level": 15,
+    "lines": 145,
+    "pieces": 397,
+    "lastCalculationTime": 0.29999983310699465
+}{
+    "score": 137000,
+    "level": 16,
+    "lines": 153,
+    "pieces": 415,
+    "lastCalculationTime": 0.24999983608722688
+}{
+    "score": 88000,
+    "level": 12,
+    "lines": 118,
+    "pieces": 329,
+    "lastCalculationTime": 0.4499998688697815
+}{
+    "score": 108000,
+    "level": 14,
+    "lines": 131,
+    "pieces": 365,
+    "lastCalculationTime": 0.3499998450279236
+}{
+    "score": 152500,
+    "level": 16,
+    "lines": 158,
+    "pieces": 428,
+    "lastCalculationTime": 0.24999983608722688
+}{
+    "score": 20600,
+    "level": 6,
+    "lines": 57,
+    "pieces": 174,
+    "lastCalculationTime": 0.7499999403953552
+}
