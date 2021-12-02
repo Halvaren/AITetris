@@ -38,6 +38,16 @@ public class PieceBehaviour : MonoBehaviour
 
     #endregion
 
+    private TetrisBoardController tbController;
+    public TetrisBoardController TBController
+    {
+        get
+        {
+            if (tbController == null) tbController = TetrisBoardController.Instance;
+            return tbController;
+        }
+    }
+
     void Awake()
     {
         InitializeGlobalVariables();
@@ -52,8 +62,8 @@ public class PieceBehaviour : MonoBehaviour
     /// </summary>
     void InitializeGlobalVariables()
     {
-        lockedLimitTime = TetrisBoardController.Instance.lockedLimitTime;
-        spawnLocation = TetrisBoardController.Instance.spawnPos;
+        lockedLimitTime = TBController.lockedLimitTime;
+        spawnLocation = TBController.spawnPos;
     }
 
     /// <summary>
@@ -136,7 +146,7 @@ public class PieceBehaviour : MonoBehaviour
 
     /// <summary>
     /// Checks if there aren't no more tiles conforming this piece, because they have been deleted when lines have been cleared. It is useful to delete the piece
-    /// GameObject when there aren't no more tile
+    /// GameObject when there aren't no more tiles
     /// </summary>
     /// <returns></returns>
     public bool AnyTilesLeft()
@@ -153,15 +163,15 @@ public class PieceBehaviour : MonoBehaviour
     /// Moves the piece a specific amount of movement, only if it can
     /// </summary>
     /// <param name="movement"></param>
-    /// <param name="test">If it is true, that means the method has been called in a testing context, to test something visually, so it doesn't to lock the piece if it's moved down</param>
+    /// <param name="debug">If it is true, that means the method has been called in a testing context, to test something visually, so it doesn't have to lock the piece if it's moved down</param>
     /// <returns></returns>
-    public bool MovePiece(Vector2Int movement, bool test = false)
+    public bool MovePiece(Vector2Int movement, bool debug = false)
     {
         bool canMove = CanPieceMove(movement);
 
         if (!canMove)
         {
-            if (!test && movement == Vector2Int.down) SetPiece();
+            if (!debug && movement == Vector2Int.down) SetPiece();
             return false;
         }
 
@@ -222,7 +232,7 @@ public class PieceBehaviour : MonoBehaviour
     /// <returns></returns>
     bool Offset(int oldRotationIndex, int newRotationIndex)
     {
-        Vector2Int offsetVal1, offsetVal2, endOffset = Vector2Int.zero;
+        Vector2Int offsetValue1, offsetValue2, endOffset = Vector2Int.zero;
         Vector2Int[,] currentOffsetData;
 
         if (pieceType == PieceType.O) currentOffsetData = TetrisData.O_OFFSET_DATA;
@@ -233,9 +243,9 @@ public class PieceBehaviour : MonoBehaviour
 
         for (int testIndex = 0; testIndex < 5; testIndex++)
         {
-            offsetVal1 = currentOffsetData[testIndex, oldRotationIndex];
-            offsetVal2 = currentOffsetData[testIndex, newRotationIndex];
-            endOffset = offsetVal1 - offsetVal2;
+            offsetValue1 = currentOffsetData[testIndex, oldRotationIndex];
+            offsetValue2 = currentOffsetData[testIndex, newRotationIndex];
+            endOffset = offsetValue1 - offsetValue2;
             if (CanPieceMove(endOffset))
             {
                 movePossible = true;
@@ -257,21 +267,21 @@ public class PieceBehaviour : MonoBehaviour
         {
             if (!tiles[i].SetTile())
             {
-                TetrisBoardController.Instance.GameOver(tiles);
-                this.enabled = false;
+                TBController.GameOver(tiles);
+                enabled = false;
                 return;
             }
         }
         TetrisBoardController.Instance.CheckLinesToClear();
-        this.enabled = false;
+        enabled = false;
     }
 
     /// <summary>
     /// The normal behaviour is that the game is moving the piece down when some time has passed, 
-    /// but it can be a hard drop, which is when the user decides to move the piece down until it collides with something in once
+    /// but it can be a hard drop when it has to move directly to the bottom
     /// </summary>
     /// <param name="hardDrop"></param>
-    /// <param name="test">If that's true, that means it doesn't have to lock the piece when is harddropping</param>
+    /// <param name="test">If that's true, that means it doesn't have to lock the piece when is hard dropping</param>
     public void DropPiece(bool hardDrop = false, bool test = false)
     {
         if (hardDrop)

@@ -18,7 +18,7 @@ public class TetrisRandomGenerator : MonoBehaviour
     public Transform nextPiecesDisplayer; //GameObject where are going to be displayed the next pieces
 
     private System.Random rnd;
-    public int randomSeed = 42;
+    public int randomSeed = -1;
 
     private static TetrisRandomGenerator instance;
     public static TetrisRandomGenerator Instance
@@ -35,7 +35,11 @@ public class TetrisRandomGenerator : MonoBehaviour
 
         currentBag = new List<int>() { 0, 1, 2, 3, 4, 5, 6 };
         nextBag = new List<int>() { 0, 1, 2, 3, 4, 5, 6 };
-        rnd = new System.Random(randomSeed); //The random seed is set in order to make a better testing and debugging
+
+        if (randomSeed == -1)
+            rnd = new System.Random();
+        else
+            rnd = new System.Random(randomSeed); //The random seed is set in order to make a better testing and debugging
 
         nextPiece = 0;
 
@@ -114,7 +118,7 @@ public class TetrisRandomGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// This method is used by the MCTSTetrisBot and HumanizedTetrisBot, to know the pieces shown in the nextPiecesDisplayer
+    /// This method is used by the MCTSTetrisBot, to know the pieces shown in the nextPiecesDisplayer
     /// </summary>
     /// <returns></returns>
     public PieceType[] GetNextPieces()
@@ -154,12 +158,12 @@ public class TetrisRandomGenerator : MonoBehaviour
         {
             if(nextPiece + i < currentBag.Count)
             {
-                nextPiecesDisplayer.GetChild(i).GetChild((int)currentBag[nextPiece + i]).gameObject.SetActive(true);
+                nextPiecesDisplayer.GetChild(i).GetChild(currentBag[nextPiece + i]).gameObject.SetActive(true);
                 i++;
             }
             else
             {
-                nextPiecesDisplayer.GetChild(i).GetChild((int)nextBag[j]).gameObject.SetActive(true);
+                nextPiecesDisplayer.GetChild(i).GetChild(nextBag[j]).gameObject.SetActive(true);
                 j++;
                 i++;
             }

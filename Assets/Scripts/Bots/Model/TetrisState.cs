@@ -120,6 +120,7 @@ public class TetrisState
         }
 
         if (clearedLines == 4) BOOMTetris = true;
+        else BOOMTetris = false;
     }
 
     /// <summary>
@@ -157,14 +158,10 @@ public class TetrisState
         for(int x = 0; x < boardWidth; x++)
         {
             int binMask = 1 << x;
-            bool hitTile = false;
 
-            if (IsColFull(x)) continue;
-            for (int y = boardHeight - 1; y >= 0; y--)
+            for (int y = GetColHeight(x); y >= 0; y--)
             {
-                if (IsRowFull(y)) continue;
-                if ((board[y] & binMask) > 0) hitTile = true;
-                if (hitTile && (board[y] & binMask) == 0) holeCount++;
+                if ((board[y] & binMask) == 0) holeCount++;
             }
         }
 
@@ -202,15 +199,14 @@ public class TetrisState
         for (int x = 0; x < boardWidth; x++)
         {
             int binMask = 1 << x;
-            bool hitTile = false;
 
-            if (IsColFull(x)) continue;
-            for (int y = boardHeight - 1; y >= 0; y--)
+            for (int y = GetColHeight(x); y >= 0; y--)
             {
-                if (IsRowFull(y)) continue;
-
-                if ((board[y] & binMask) > 0) hitTile = true;
-                if (hitTile && (board[y] & binMask) == 0 && !checkedRows[y]) { rowsCount++; checkedRows[y] = true; }
+                if ((board[y] & binMask) == 0)
+                {
+                    rowsCount++;
+                    checkedRows[y] = true;
+                }
             }
         }
 
@@ -221,7 +217,7 @@ public class TetrisState
     /// Returns the current height of the board (most high row where is at least one tile)
     /// </summary>
     /// <returns></returns>
-    public int GetCurrentHeight()
+    public int GetCurrentMaxHeight()
     {
         for(int y = maxHeight; y >= 0; y--)
         {
@@ -257,7 +253,7 @@ public class TetrisState
     /// <returns></returns>
     private float GetHumanizedWeight()
     {
-        float currentHeightWeight = (float) GetCurrentHeight() / maxHeight;
+        float currentHeightWeight = (float) GetCurrentMaxHeight() / maxHeight;
 
         float result = (TetrisBoardController.Instance.humanizedWeight + (1 - currentHeightWeight)) / 2;
 
@@ -346,16 +342,6 @@ public class TetrisState
     #endregion
 
     #region Simple checkers
-
-    private bool IsColFull(int x)
-    {
-        int binMask = 1 << x;
-        for(int y = boardHeight - 1; y >= 0; y--)
-        {
-            if ((board[y] & binMask) == 0) return false;
-        }
-        return true;
-    }
 
     private bool IsRowFull(int y)
     {

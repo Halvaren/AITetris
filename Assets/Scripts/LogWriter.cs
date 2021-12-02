@@ -51,28 +51,27 @@ public class LogWriter : MonoBehaviour
 
     #region Genetic algorithm methods
 
-    public TetrisGeneration[] ReadGenerationsArray(BotVersion botVersion)
+    public TetrisGeneration[] ReadGenerationsArray(BotVersion botVersion, string path = null)
     {
-        string path = GetBotVersionGensLogFilePath(botVersion);
+        if(path == null) path = GetBotVersionGensLogFilePath(botVersion);
 
         if(path == "")
         {
-            Debug.Log("Wrong bot version");
+            Debug.LogError("Wrong bot version");
             return null;
         }
         string json = File.ReadAllText(path);
-        Debug.Log(json);
 
         return JsonHelper.FromJsonArray<TetrisGeneration>(json);
     }
 
-    public List<TetrisGeneration> ReadGenerationsList(BotVersion botVersion)
+    public List<TetrisGeneration> ReadGenerationsList(BotVersion botVersion, string path = null)
     {
-        string path = GetBotVersionGensLogFilePath(botVersion);
+        if (path == null) path = GetBotVersionGensLogFilePath(botVersion);
 
         if (path == "")
         {
-            Debug.Log("Wrong bot version");
+            Debug.LogError("Wrong bot version");
             return null;
         }
         string json = File.ReadAllText(path);
@@ -87,7 +86,7 @@ public class LogWriter : MonoBehaviour
         if (tetrisGenerations == null) return null;
         if(index >= tetrisGenerations.Length || index < 0)
         {
-            Debug.Log("Wrong index. Out of bounds");
+            Debug.LogError("Wrong index. Out of bounds");
             return null;
         }
         return tetrisGenerations[index];
@@ -103,14 +102,14 @@ public class LogWriter : MonoBehaviour
         }
         else
         {
-            List<TetrisGeneration> currentGenerations = ReadGenerationsList(botVersion);
+            List<TetrisGeneration> currentGenerations = ReadGenerationsList(botVersion, path);
 
             if (currentGenerations == null) currentGenerations = new List<TetrisGeneration>();
 
-            if (tetrisGeneration.generation > currentGenerations.Count)
+            if (tetrisGeneration.genIndex > currentGenerations.Count)
                 currentGenerations.Add(tetrisGeneration);
             else
-                currentGenerations[tetrisGeneration.generation - 1] = tetrisGeneration;
+                currentGenerations[tetrisGeneration.genIndex - 1] = tetrisGeneration;
 
             string json = JsonHelper.ToJson(currentGenerations, true);
 

@@ -16,7 +16,7 @@ namespace Assets.Scripts.GeneticAlgorithm
         public float bestScore;
 
         public float scoreMean;
-        public int generation;
+        public int genIndex;
 
         public int pieces;
         public int lines;

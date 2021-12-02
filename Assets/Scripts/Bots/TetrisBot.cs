@@ -8,16 +8,32 @@ using UnityEngine;
 public class TetrisBot
 {
     protected TetrisState currentTetrisState; //Current modelization of the actual board game
+    protected TetrisState emptyTetrisState; //Empty modelization of the board game useful for the calculation of the possible actions with each piece
 
     protected int boardWidth;
     protected int boardHeight;
 
+    protected Dictionary<PieceType, List<PieceAction>> pieceActionDictionary;
+
+    private TetrisBoardController tbController;
+    public TetrisBoardController TBController
+    {
+        get
+        {
+            if (tbController == null) tbController = TetrisBoardController.Instance;
+            return tbController;
+        }
+    }
+
     public TetrisBot()
     { 
-        boardWidth = TetrisBoardController.Instance.boardWidth;
-        boardHeight = TetrisBoardController.Instance.boardHeight;
+        boardWidth = TBController.boardWidth;
+        boardHeight = TBController.boardHeight;
 
         currentTetrisState = new TetrisState();
+        emptyTetrisState = new TetrisState();
+
+        pieceActionDictionary = new Dictionary<PieceType, List<PieceAction>>();
     }
 
     /// <summary>
@@ -33,19 +49,30 @@ public class TetrisBot
 
         float t0 = Time.time;
 
-        List<PieceAction> possibleActions = currentTetrisState.GetActions(nextPiece); //First of all, it gets the possible actions with the current piece in the current state
+        List<PieceAction> possibleActions; //First of all, it gets the possible actions with the current piece in the current state
+        if (!pieceActionDictionary.ContainsKey(nextPieceType))
+        {
+            possibleActions = emptyTetrisState.GetActions(nextPiece);
+            pieceActionDictionary.Add(nextPieceType, possibleActions);
+        }
+        else possibleActions = pieceActionDictionary[nextPieceType];
+
         float bestScore = -float.MaxValue;
-        PieceAction bestAction = null;
+        PieceAction bestAction;
 
         int i = Random.Range(0, possibleActions.Count); //The first possible action to test is chosen randomly
         int initialIndex = i;
 
+        bestAction = possibleActions[i];
+
+        Debug.Log("possible actions " + possibleActions.Count);
         //In a while loop that goes until the time ends
-        while(Time.time - t0 < budget)
+        while (Time.time - t0 < budget && i < possibleActions.Count)
         {
+            Debug.Log("action " + i);
             TetrisState newState = currentTetrisState.CloneState(); //The TetrisState is cloned
 
-            newState.DoAction(nextPiece, possibleActions[i]); //One of the possible actions is played
+            newState.DoAction(nextPiece, possibleActions[i]); //One of the possible actions is played in the cloned state
             nextPiece.ResetCoordinates();
 
             float score = newState.GetScore(); //And its score is got
@@ -66,6 +93,6 @@ public class TetrisBot
 
         currentTetrisState.DoAction(nextPiece, bestAction); //The bestAction is played in the real state
 
-        TetrisBoardController.Instance.DoActionByBot(bestAction); //And also, it is said to the TetrisBoardController to play that action in the real board
+        TBController.DoActionByBot(bestAction); //And also, it is said to the TetrisBoardController to play that action in the real board
     }
 }

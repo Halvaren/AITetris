@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Assets.Scripts
 {
     /// <summary>
-    /// Since JsonUtility doesn't allow to serialize/deserialize a list or an array of serializable objects, this auxiliar class makes it easier, with the Wrapper class
+    /// Since JsonUtility doesn't allow to serialize/deserialize a list or an array of serializable objects, this auxiliar class makes it easier, with Wrapper classes
     /// </summary>
     public static class JsonHelper
     {

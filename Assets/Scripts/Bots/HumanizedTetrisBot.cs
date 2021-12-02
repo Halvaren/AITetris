@@ -83,6 +83,11 @@ public class HumanizedTetrisBot : TetrisBot
         while(Time.time - t0 < budget && i < possibleActions.Count)
         {
             PieceAction action = possibleActions[i];
+            if (action.rotationIndex == 0) //The I piece is horizontal, not vertical, so it can't be a Tetris
+            { 
+                i++; 
+                continue; 
+            }
 
             TetrisState newState = currentTetrisState.CloneState();
 

@@ -8,9 +8,28 @@ using UnityEngine;
 public class TileBehaviour : MonoBehaviour
 {
     public Vector2Int Coordinates { get; private set; } //Coordinates of the tile
-
     public PieceBehaviour Piece { get; private set; } //Pointer to the piece which forms
     public int tileIndex { get; private set; } //Index where it is stored in the array of tiles of its piece
+
+    private MeshRenderer meshRenderer;
+    public MeshRenderer MeshRenderer
+    {
+        get
+        {
+            if (meshRenderer == null) meshRenderer = GetComponent<MeshRenderer>();
+            return meshRenderer;
+        }
+    }
+
+    private TetrisBoardController tbController;
+    public TetrisBoardController TBController
+    {
+        get
+        {
+            if (tbController == null) tbController = TetrisBoardController.Instance;
+            return tbController;
+        }
+    }
 
     /// <summary>
     /// Initializes the tile with data of its piece
@@ -39,7 +58,7 @@ public class TileBehaviour : MonoBehaviour
     /// <param name="material"></param>
     public void SetMaterial(Material material)
     {
-        GetComponent<MeshRenderer>().material = material;
+        MeshRenderer.material = material;
     }
 
     /// <summary>
@@ -59,11 +78,11 @@ public class TileBehaviour : MonoBehaviour
     /// <returns></returns>
     public bool CanTileMove(Vector2Int endPos)
     {
-        if (!TetrisBoardController.Instance.IsInBounds(endPos))
+        if (!TBController.IsInBounds(endPos))
         {
             return false;
         }
-        if (!TetrisBoardController.Instance.IsPosEmpty(endPos))
+        if (!TBController.IsPosEmpty(endPos))
         {
             return false;
         }
@@ -78,7 +97,7 @@ public class TileBehaviour : MonoBehaviour
     {
         if (Coordinates.y >= 20) return false;
 
-        TetrisBoardController.Instance.OccupyPos(Coordinates, this); //Sets the position in the board
+        TBController.OccupyPos(Coordinates, this); //Sets the position in the board
         return true;
     }
 

@@ -7,7 +7,6 @@ public class PieceModel
 {
     public PieceType pieceType;
 
-    private Vector2Int[] binaryTiles; //Array that contains pairs of ints. The first int of each pair is a binary number that indicates the X position of a tile, and the second one, the Y position but it's a decimal number
     private Vector2Int[] originalTileCoordinates; //Array that contains the position of the tiles when the piece is spawned. It is useful to reset the piece easily when a bot is calculating the best move
     private Vector2Int[] tileCoordinates; //Array that contains the current position of the tiles
 
@@ -52,8 +51,6 @@ public class PieceModel
         for (int i = 0; i < tileRelativePositions.Length; i++) tileCoordinates[i] = spawnPosition + tileRelativePositions[i];
 
         for (int i = 0; i < originalTileCoordinates.Length; i++) originalTileCoordinates[i] = tileCoordinates[i];
-
-        binaryTiles = new Vector2Int[4];
     }
 
     #region Getters & setters
@@ -88,6 +85,7 @@ public class PieceModel
 
     public Vector2Int[] GetBinaryTiles()
     {
+        Vector2Int[] binaryTiles = new Vector2Int[4];
         for(int i = 0; i < tileCoordinates.Length; i++)
         {
             binaryTiles[i] = GetBinaryTile(tileCoordinates[i]);
@@ -208,12 +206,6 @@ public class PieceModel
         for (int i = 0; i < tileCoordinates.Length; i++)
         {
             newPiece.tileCoordinates[i] = tileCoordinates[i];
-        }
-
-        newPiece.binaryTiles = new Vector2Int[4];
-        for (int i = 0; i < binaryTiles.Length; i++)
-        {
-            newPiece.binaryTiles[i] = binaryTiles[i];
         }
 
         return newPiece;

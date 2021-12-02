@@ -142,7 +142,7 @@ namespace Assets.Scripts.GeneticAlgorithm
         private void SaveCurrentGeneration()
         {
             TetrisGeneration currentGeneration = new TetrisGeneration();
-            currentGeneration.generation = generation;
+            currentGeneration.genIndex = generation;
             currentGeneration.bestScore = best.GetScore();
             currentGeneration.bestWeights = best.GetWeights();
 

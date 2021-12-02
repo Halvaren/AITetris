@@ -7,6 +7,20 @@ public class PieceEmitter : MonoBehaviour
     public GameObject piecePrefab;
     public Material[] pieceMaterials;
 
+    private static PieceEmitter instance;
+    public static PieceEmitter Instance
+    {
+        get
+        {
+            return instance;
+        }
+    }
+
+    private void Awake()
+    {
+        instance = this;
+    }
+
     /// <summary>
     /// Gets the next piece from the TetrisRandomGenerator, instantiates it, initializes it and returns it to the TetrisBoardController
     /// </summary>

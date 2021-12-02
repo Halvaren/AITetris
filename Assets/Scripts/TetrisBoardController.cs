@@ -22,6 +22,8 @@ public class TetrisBoardController : MonoBehaviour
     #region Board variables
 
     private TileBehaviour[,] board; //Matrix of tiles that models the board
+    //The left column of the board corresponds to 0 position in X axis
+    //The bottom row of the board corresponds to 0 position in Y axis
 
     public int boardWidth;
     public int boardHeight;
@@ -71,7 +73,7 @@ public class TetrisBoardController : MonoBehaviour
 
     //Weights use to calculate the "score" of each action made by a bot, in order to choose the best one
     public float holesWeight; //It will be multiplied by the number of holes. A hole is a tile position where the bot cannot access
-    public float bumpinessWeight; //It will be multiplied by the bumpiness value. This value is calculated measuring the difference of heights between columns of tiles
+    public float bumpinessWeight; //It will be multiplied by the bumpiness value. This value is calculated measuring the difference of heights between columns
     public float linesWeight; //It will be multiplied by the number of lines cleared by one piece
     public float rowHolesWeight; //It will be multiplied by the number of rows that have at least one hole.
     public float humanizedWeight; //It will be multiplied by the number of tiles in the first column of the board. It is called humanizedWeight because is only used by the HumanizedBot
@@ -109,7 +111,15 @@ public class TetrisBoardController : MonoBehaviour
 
     #region Other variables
 
-    public PieceEmitter pieceEmitter; //It points to the PieceEmitter
+    private PieceEmitter pieceEmitter; //It points to the PieceEmitter
+    public PieceEmitter PieceEmitter
+    {
+        get
+        {
+            if (pieceEmitter == null) pieceEmitter = PieceEmitter.Instance;
+            return pieceEmitter;
+        }
+    }
     
     private PieceBehaviour currentPiece; //It points to the current piece that is playing
 
@@ -118,6 +128,26 @@ public class TetrisBoardController : MonoBehaviour
     private bool startedGame = false; //It shows if the game has been started or not
 
     #endregion
+
+    private TetrisRandomGenerator trg; //Points to the Tetris Random Generator
+    public TetrisRandomGenerator TRG
+    {
+        get
+        {
+            if (trg == null) trg = TetrisRandomGenerator.Instance;
+            return trg;
+        }
+    }
+
+    private LogWriter logWriter; //Points to the script which manages the log reading and writing functions
+    public LogWriter LogWriter
+    {
+        get
+        {
+            if (logWriter == null) logWriter = LogWriter.Instance;
+            return logWriter;
+        }
+    }
 
     private static TetrisBoardController instance;
     public static TetrisBoardController Instance
@@ -167,9 +197,9 @@ public class TetrisBoardController : MonoBehaviour
         linesCleared = score = pieces = 0;
         UpdateUI();
 
-        TetrisRandomGenerator.Instance.ShuffleBags();
+        TRG.ShuffleBags();
 
-        currentPiece = pieceEmitter.EmitPiece();
+        currentPiece = PieceEmitter.EmitPiece();
         startedGame = true;
 
         if (botVersion != BotVersion.Player)
@@ -229,8 +259,7 @@ public class TetrisBoardController : MonoBehaviour
     /// </summary>
     void Rotation()
     {
-        //Clockwise: Modern Tetris only allows to rotate clockwise, but I add counterclockwise rotation like classic tetris 
-        //and I keep the only-clockwise-rotation controlling because I'm more used to it
+        //Clockwise
         if (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             currentPiece.RotatePiece(true, true);
@@ -355,7 +384,7 @@ public class TetrisBoardController : MonoBehaviour
     {
         //This list will stored the same bool values as rows the board have, and the rows that have to be cleared will be true in this list
         List<bool> linesToClear = new List<bool>();
-        int firstClearedLine = -1; //First line that has to be cleared starting from top
+        int firstClearedLine = -1; //First line that has to be cleared starting from bottom
         int clearedLinesCount = 0; //Amount of lines that have to be cleared
 
         for (int i = 0; i < boardHeight; i++)
@@ -383,7 +412,7 @@ public class TetrisBoardController : MonoBehaviour
         }
 
         //Next piece is spawned
-        currentPiece = pieceEmitter.EmitPiece();
+        currentPiece = PieceEmitter.EmitPiece();
         pieces++;
 
         UpdateUI();
@@ -394,8 +423,8 @@ public class TetrisBoardController : MonoBehaviour
             return;
         }
 
-        //Since this is method that is called when a piece is locked in the board, here a new next piece is sent to the bot (if that bot is based in MCTS)
-        if (botVersion == BotVersion.MCTSBot) ((MCTSTetrisBot)bot).AddNewPiece(TetrisRandomGenerator.Instance.GetLastNextPiece());
+        //Since this is a method called when a piece is locked in the board, here a new next piece is sent to the bot (if that bot is based in MCTS)
+        if (botVersion == BotVersion.MCTSBot) ((MCTSTetrisBot)bot).AddNewPiece(TRG.GetLastNextPiece());
     }
 
     /// <summary>
@@ -415,12 +444,14 @@ public class TetrisBoardController : MonoBehaviour
             else
             {
                 for (int j = 0; j < boardWidth; j++)
-                {
+                {   
+                    //Moving top tiles to down
                     if (board[j, i] != null)
                     {
                         board[j, i].MoveTile(Vector2Int.down * clearedLines);
                     }
 
+                    //Managing tiles that were in the cleared line
                     if (board[j, i - clearedLines] != null)
                     {
                         PieceBehaviour pB = board[j, i - clearedLines].Piece;
@@ -636,7 +667,7 @@ public class TetrisBoardController : MonoBehaviour
     /// </summary>
     private void LoadWeightsFromFile()
     {
-        TetrisGeneration tetrisGeneration = LogWriter.Instance.GetGeneration(botVersion, generation - 1);
+        TetrisGeneration tetrisGeneration = LogWriter.GetGeneration(botVersion, generation - 1);
 
         if(tetrisGeneration != null)
         {
@@ -645,6 +676,8 @@ public class TetrisBoardController : MonoBehaviour
             linesWeight = tetrisGeneration.bestWeights[2];
             rowHolesWeight = tetrisGeneration.bestWeights[3];
             if(botVersion == BotVersion.HumanizedBot) humanizedWeight = tetrisGeneration.bestWeights[4];
+
+            UpdateUIWeights();
         }
     }
 
@@ -675,7 +708,7 @@ public class TetrisBoardController : MonoBehaviour
 
         testingData.lastCalculationTime = nextActionsTime;
 
-        LogWriter.Instance.WriteTesting(botVersion, testingData);
+        LogWriter.WriteTesting(botVersion, testingData);
     }
 
     #region Debug methods
