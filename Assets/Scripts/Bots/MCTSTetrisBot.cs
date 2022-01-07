@@ -14,6 +14,8 @@ public class MCTSTetrisBot : TetrisBot
 
     protected int rollouts = 0;
 
+    public float t0;
+
     //Looking to the giving results, I see that it was "unfair" to give the same importance to all the scores got from a rollout (the score of playing the
     //current piece, the first next piece, the second next piece...), because those next pieces are important but not such important as the current piece is
     //So, with this value, the given score by playing the next pieces is reduced
@@ -26,12 +28,26 @@ public class MCTSTetrisBot : TetrisBot
     /// <param name="budget"></param>
     public MCTSTetrisBot(PieceType[] initialPieces, float budget)
     {
+        TBController.StartCoroutine(BotConstructionCoroutine(initialPieces, budget));
+    }
+
+    protected IEnumerator BotConstructionCoroutine(PieceType[] initialPieces, float budget)
+    {
+        t0 = 0.0f;
+
         pieces = new List<PieceType>(initialPieces);
 
         PieceModel[] nextPieces = new PieceModel[initialPieces.Length];
-        for(int i = 0; i < initialPieces.Length; i++)
+        for (int i = 0; i < initialPieces.Length; i++)
         {
-            nextPieces[i] = new PieceModel(initialPieces[i]);
+            if(!TBController.pausedGame)
+            {
+                t0 += Time.deltaTime;
+
+                nextPieces[i] = new PieceModel(initialPieces[i]);
+            }
+
+            yield return null;
         }
         CreateTree(nextPieces, budget);
     }
@@ -43,7 +59,7 @@ public class MCTSTetrisBot : TetrisBot
     /// <param name="budget"></param>
     protected void CreateTree(PieceModel[] initialPieces, float budget)
     {
-        treeSearch = new MCTreeSearch(currentTetrisState, budget, initialPieces);
+        treeSearch = new MCTreeSearch(this, currentTetrisState, budget, initialPieces);
         currentNode = treeSearch.rootNode;
     }
 
@@ -65,14 +81,13 @@ public class MCTSTetrisBot : TetrisBot
     /// <returns></returns>
     public override IEnumerator ActCoroutine(PieceType nextPieceType, float budget)
     {
+        t0 = 0.0f;
         rollouts = 0;
 
         PieceModel nextPiece = new PieceModel(nextPieceType);
 
         //Debug
         //yield return TetrisBoardController.Instance.StartCoroutine(TetrisBoardController.Instance.ShowPossibleActionsCoroutine(currentNode.state.GetActions(nextPiece)));
-
-        float t0 = Time.time;
 
         MCTSNode currentRollingNode = currentNode;
 
@@ -84,45 +99,50 @@ public class MCTSTetrisBot : TetrisBot
         }
 
         //While there is still time
-        while (Time.time - t0 < budget)
-        {            
-            //For each child, a rollout is made
-            foreach(MCTSNode child in currentRollingNode.children)
+        while (t0 < budget)
+        {
+            if(!TBController.pausedGame)
             {
-                //If the state is not terminal, the rollout is made, and the score stored and backpropagated
-                if(!child.state.IsTerminal())
-                {
-                    float score = Rollout(child);
-                    child.score += score;
-                    child.n += 1;
+                t0 += Time.deltaTime;
 
-                    Backpropagation(child.parent, score);
+                //For each child, a rollout is made
+                foreach (MCTSNode child in currentRollingNode.children)
+                {
+                    //If the state is not terminal, the rollout is made, and the score stored and backpropagated
+                    if (!child.state.IsTerminal())
+                    {
+                        float score = Rollout(child);
+                        child.score += score;
+                        child.n += 1;
+
+                        Backpropagation(child.parent, score);
+                    }
+                    //If it's terminal, it store like a rollout was made in order to not choose this child when the best one is searched
+                    else
+                        child.n += 1;
                 }
-                //If it's terminal, it store like a rollout was made in order to not choose this child when the best one is searched
+
+                //After the rollouts, the best child is chosen
+                MCTSNode bestChild = currentRollingNode.GetBestChild();
+
+                //If the best child it doesn't have children
+                if (bestChild.children.Count == 0)
+                {
+                    //If their children piece is known
+                    if (bestChild.height < pieces.Count)
+                    {
+                        //The node will be extended
+                        bestChild.ExtendNode(new PieceModel(pieces[bestChild.height]));
+                        RolloutOneRandomChild(bestChild);
+                    }
+                    //And then, it goes back to the currentRootNode
+                    currentRollingNode = currentNode;
+                }
+                //Otherwise, the algorithm moves to that best child
                 else
-                    child.n += 1;
-            }
-
-            //After the rollouts, the best child is chosen
-            MCTSNode bestChild = currentRollingNode.GetBestChild();
-            
-            //If the best child it doesn't have children
-            if (bestChild.children.Count == 0)
-            {
-                //If their children piece is known
-                if(bestChild.height < pieces.Count)
                 {
-                    //The node will be extended
-                    bestChild.ExtendNode(new PieceModel(pieces[bestChild.height]));
-                    RolloutOneRandomChild(bestChild);
+                    currentRollingNode = bestChild;
                 }
-                //And then, it goes back to the currentRootNode
-                currentRollingNode = currentNode;
-            }
-            //Otherwise, the algorithm moves to that best child
-            else
-            {
-                currentRollingNode = bestChild;
             }
 
             yield return null;
@@ -136,7 +156,7 @@ public class MCTSTetrisBot : TetrisBot
 
         //Debug.Log("Rollouts: " + rollouts);
 
-        TetrisBoardController.Instance.DoActionByBot(recommendedChild.action); //And it is played in the real board
+        TBController.DoActionByBot(recommendedChild.action); //And it is played in the real board
     }
 
     /// <summary>

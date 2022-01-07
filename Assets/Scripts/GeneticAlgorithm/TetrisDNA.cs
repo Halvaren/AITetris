@@ -13,6 +13,16 @@
         private int lines = 0;
         private int level = 0;
 
+        private TetrisBoardController tbController;
+        public TetrisBoardController TBController
+        {
+            get
+            {
+                if (tbController == null) tbController = TetrisBoardController.Instance;
+                return tbController;
+            }
+        }
+
         public TetrisDNA(int size)
         {
             weightGenes = new float[size];
@@ -34,9 +44,9 @@
         /// </summary>
         public void PlayGame()
         {
-            TetrisBoardController.Instance.SetWeights(weightGenes);
+            TBController.SetWeights(weightGenes);
 
-            TetrisBoardController.Instance.PlayBot();
+            TBController.PlayBot();
         }
 
         #region Getters & Setters

@@ -9,13 +9,25 @@ using UnityEngine;
 /// </summary>
 public class MCTreeSearch
 {
+    private MCTSTetrisBot bot;
     public MCTSNode rootNode;
     public static int nNodes = 0;
     public static int currentHeight = 0;
 
-    public MCTreeSearch(TetrisState state, float budget, PieceModel[] initialPieces)
+    private TetrisBoardController tbController;
+    public TetrisBoardController TBController
     {
-        TetrisBoardController.Instance.StartCoroutine(CreateTree(state, budget, initialPieces));
+        get
+        {
+            if (tbController == null) tbController = TetrisBoardController.Instance;
+            return tbController;
+        }
+    }
+
+    public MCTreeSearch(MCTSTetrisBot bot, TetrisState state, float budget, PieceModel[] initialPieces)
+    {
+        this.bot = bot;
+        TBController.StartCoroutine(CreateTree(state, budget, initialPieces));
     }
 
     /// <summary>
@@ -27,24 +39,27 @@ public class MCTreeSearch
     /// <returns></returns>
     private IEnumerator CreateTree(TetrisState state, float budget, PieceModel[] initialPieces)
     {
-        float t0 = Time.time;
-
         rootNode = new MCTSNode(nNodes, null, state, null, null);
 
         Queue<MCTSNode> queue = new Queue<MCTSNode>();
         queue.Enqueue(rootNode); //Tree is created following the same strategy as BFS: creating first all the nodes for a determined height, and then start with next level
 
-        while (Time.time - t0 < budget)
+        while (bot.t0 < budget)
         {
-            MCTSNode currentNode = queue.Dequeue();
+            if(!TBController.pausedGame)
+            {
+                bot.t0 += Time.deltaTime;
 
-            if (currentNode.height >= initialPieces.Length) break; //As the next pieces after initial pieces are unknown, it's not possible to create nodes for any other pieces than the initial ones
+                MCTSNode currentNode = queue.Dequeue();
 
-            currentNode.ExtendNode(initialPieces[currentNode.height]);
+                if (currentNode.height >= initialPieces.Length) break; //As the next pieces after initial pieces are unknown, it's not possible to create nodes for any other pieces than the initial ones
 
-            if (currentNode.children.Count > 0)
-                foreach (MCTSNode child in currentNode.children)
-                    queue.Enqueue(child);
+                currentNode.ExtendNode(initialPieces[currentNode.height]);
+
+                if (currentNode.children.Count > 0)
+                    foreach (MCTSNode child in currentNode.children)
+                        queue.Enqueue(child);
+            }
 
             yield return null;
         }
@@ -58,10 +73,10 @@ public class MCTreeSearch
     /// <param name="rootNode"></param>
     private void PrintTree(MCTSNode rootNode)
     {
-        LogWriter.Instance.InitializeMCTreeSearchLog();
+        LogWriter.InitializeMCTreeSearchLog();
 
-        LogWriter.Instance.WriteMCTreeSearch("Number of nodes: " + nNodes);
-        LogWriter.Instance.WriteMCTreeSearch("Current height: " + currentHeight);
+        LogWriter.WriteMCTreeSearch("Number of nodes: " + nNodes);
+        LogWriter.WriteMCTreeSearch("Current height: " + currentHeight);
 
         Queue<MCTSNode> queue = new Queue<MCTSNode>();
         queue.Enqueue(rootNode);
@@ -70,7 +85,7 @@ public class MCTreeSearch
         {
             MCTSNode currentNode = queue.Dequeue();
 
-            LogWriter.Instance.WriteMCTreeSearch(currentNode.ToString());
+            LogWriter.WriteMCTreeSearch(currentNode.ToString());
 
             if (currentNode.children.Count > 0)
                 foreach (MCTSNode child in currentNode.children)

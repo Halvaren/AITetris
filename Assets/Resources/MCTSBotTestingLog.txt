@@ -64,4 +64,10 @@
     "lines": 201,
     "pieces": 541,
     "lastCalculationTime": -1.564621925354004e-7
+}{
+    "score": 216800,
+    "level": 21,
+    "lines": 201,
+    "pieces": 540,
+    "lastCalculationTime": -1.564621925354004e-7
 }

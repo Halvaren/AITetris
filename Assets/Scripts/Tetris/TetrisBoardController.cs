@@ -4,12 +4,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum PlayMode
+{
+    Player, ShowOff, Training, Testing
+}
+
 /// <summary>
-/// There are different versions of bots, including player mode, that it's not actually bot but it saves me another variable
+/// There are different versions of bots
 /// </summary>
 public enum BotVersion
 {
-    Player, TetrisBot, MCTSBot, HumanizedBot
+    TetrisBot, MCTSBot, HumanizedBot
 }
 
 /// <summary>
@@ -59,6 +64,7 @@ public class TetrisBoardController : MonoBehaviour
 
     #region Bot variables
 
+    public PlayMode playMode; //Indicates if it is the user who plays or, if it is the bot, it is training, testing its training or just showing off its behavior
     public BotVersion botVersion; //Indicates which of the three BotVersions is being used
 
     [Tooltip("Type 0 to play the bot with the current weights")] 
@@ -75,14 +81,12 @@ public class TetrisBoardController : MonoBehaviour
     public float holesWeight; //It will be multiplied by the number of holes. A hole is a tile position where the bot cannot access
     public float bumpinessWeight; //It will be multiplied by the bumpiness value. This value is calculated measuring the difference of heights between columns
     public float linesWeight; //It will be multiplied by the number of lines cleared by one piece
-    public float rowHolesWeight; //It will be multiplied by the number of rows that have at least one hole.
+    public float linesHolesWeight; //It will be multiplied by the number of rows that have at least one hole.
     public float humanizedWeight; //It will be multiplied by the number of tiles in the first column of the board. It is called humanizedWeight because is only used by the HumanizedBot
 
     #endregion
 
     #region Genetic algorithm variables
-
-    public bool training = false; //If it's true, the genetic algorithm will be executed
 
     private GeneticAlgorithm geneticAlgorithm; //Algorithm that searches the best weight combination for the selected bot version
     public int populationSize; //Size of the population of the genetic algorithm
@@ -95,17 +99,10 @@ public class TetrisBoardController : MonoBehaviour
 
     #region Testing variables
 
-    public bool testing = false;
     public float initialCalculationTime = 1.0f;
     public float decreasingCalculationTimeFactor = 0.05f;
 
     #endregion
-
-    #endregion
-
-    #region Debug variables
-
-    public bool debugMode = false;
 
     #endregion
 
@@ -120,14 +117,26 @@ public class TetrisBoardController : MonoBehaviour
             return pieceEmitter;
         }
     }
-    
-    private PieceBehaviour currentPiece; //It points to the current piece that is playing
 
-    public UIController UIController; //It is points to the controller of the UI
-    
-    private bool startedGame = false; //It shows if the game has been started or not
+    private UIController uiController;
+    public UIController UIController //It is points to the controller of the UI
+    {
+        get
+        {
+            if (uiController == null) uiController = UIController.Instance;
+            return uiController;
+        }
+    }
 
-    #endregion
+    private OtherSettingsController osController;
+    public OtherSettingsController OSController
+    {
+        get
+        {
+            if (osController == null) osController = OtherSettingsController.Instance;
+            return osController;
+        }
+    }
 
     private TetrisRandomGenerator trg; //Points to the Tetris Random Generator
     public TetrisRandomGenerator TRG
@@ -136,16 +145,6 @@ public class TetrisBoardController : MonoBehaviour
         {
             if (trg == null) trg = TetrisRandomGenerator.Instance;
             return trg;
-        }
-    }
-
-    private LogWriter logWriter; //Points to the script which manages the log reading and writing functions
-    public LogWriter LogWriter
-    {
-        get
-        {
-            if (logWriter == null) logWriter = LogWriter.Instance;
-            return logWriter;
         }
     }
 
@@ -158,6 +157,18 @@ public class TetrisBoardController : MonoBehaviour
         }
     }
 
+    private bool startedGame = false; //It shows if the game has been started or not
+    public bool pausedGame = false;
+    private PieceBehaviour currentPiece; //It points to the current piece that is playing
+
+    #endregion
+
+    #region Debug variables
+
+    public bool debugMode = false;
+
+    #endregion
+
     #endregion
 
     #region Methods
@@ -169,44 +180,49 @@ public class TetrisBoardController : MonoBehaviour
         instance = this;
     }
 
-    void Start()
+    private void Start()
     {
-        if (training) //The training has to initialize only once
+        UpdateUIOtherSettings();
+    }
+
+    public void InitializeGame()
+    {
+        if (playMode == PlayMode.Training) //The training has to initialize only once
         {
             InitializeTraining();
         }
         else //If there is no training, the weights are loaded from a file
         {
-            if(generation != 0)
+            if(generation != 0 && playMode != PlayMode.Player)
             {
                 LoadWeightsFromFile();
             }
         }
 
-        InitializeGame();
+        StartGame();
     }
 
     /// <summary>
     /// Initializes the game: creates the board, initializes the score variables, calls to shuffle the bags, emits the first piece and starts the bot, if it's the case
     /// If the training is activated, plays it too
     /// </summary>
-    void InitializeGame()
+    void StartGame()
     {
         board = new TileBehaviour[boardWidth, boardHeight];
         level = 1;
         linesCleared = score = pieces = 0;
-        UpdateUI();
+        UpdateUIGameStats();
 
         TRG.ShuffleBags();
 
         currentPiece = PieceEmitter.EmitPiece();
         startedGame = true;
 
-        if (botVersion != BotVersion.Player)
+        if (playMode != PlayMode.Player)
         {
-            if(!training)
+            if(playMode != PlayMode.Training)
             {
-                if (testing) nextActionsTime = initialCalculationTime;
+                if (playMode == PlayMode.Testing) nextActionsTime = initialCalculationTime;
                 PlayBot();
             }
             else
@@ -223,7 +239,7 @@ public class TetrisBoardController : MonoBehaviour
     void Update()
     {
         //It only works when the game has started and the player mode is on
-        if (startedGame && botVersion == BotVersion.Player)
+        if (startedGame && !pausedGame && playMode == PlayMode.Player)
         {
             Rotation();
             HoritzontalMovement();
@@ -415,11 +431,11 @@ public class TetrisBoardController : MonoBehaviour
         currentPiece = PieceEmitter.EmitPiece();
         pieces++;
 
-        UpdateUI();
+        UpdateUIGameStats();
 
-        if(training && pieceLimitTraining != 0 && pieces > pieceLimitTraining) //In case training is activated and there is a limit of pieces per game, it checks that this limit has been reached
+        if(playMode == PlayMode.Training && pieceLimitTraining != 0 && pieces > pieceLimitTraining) //In case training is activated and there is a limit of pieces per game, it checks that this limit has been reached
         {
-            GameOver(currentPiece.tiles); //In that case, the game is over
+            GameOver(); //In that case, the game is over
             return;
         }
 
@@ -484,7 +500,7 @@ public class TetrisBoardController : MonoBehaviour
         if (this.linesCleared > level * linesToLevelUp)
         {
             level++;
-            if(botVersion != BotVersion.Player && testing)
+            if(playMode == PlayMode.Testing)
             {
                 nextActionsTime -= decreasingCalculationTimeFactor;
             }
@@ -494,7 +510,7 @@ public class TetrisBoardController : MonoBehaviour
     /// <summary>
     /// Updates the UI with the proper data
     /// </summary>
-    void UpdateUI()
+    void UpdateUIGameStats()
     {
         UIController.UpdateScoreText(score);
         UIController.UpdatePiecesText(pieces);
@@ -510,7 +526,7 @@ public class TetrisBoardController : MonoBehaviour
         UIController.UpdateHolesWeightText(holesWeight);
         UIController.UpdateBumpinessWeightText(bumpinessWeight);
         UIController.UpdateLinesWeightText(linesWeight);
-        UIController.UpdateRowsHolesWeightText(rowHolesWeight);
+        UIController.UpdateRowsHolesWeightText(linesHolesWeight);
         UIController.UpdateHumanizedText(humanizedWeight);
     }
 
@@ -523,17 +539,35 @@ public class TetrisBoardController : MonoBehaviour
         UIController.UpdateGenerationText(generation);
     }
 
+    public void UpdateUIOtherSettings()
+    {
+        OSController.SetInitialActionTime(initialActionTime);
+        OSController.SetNextActionsTime(nextActionsTime);
+        OSController.SetPopulationSize(populationSize);
+        OSController.SetMutationRate(mutationRate);
+        OSController.SetPieceLimit(pieceLimitTraining);
+        OSController.SetInitialCalculationTime(initialCalculationTime);
+        OSController.SetDecreasingCalculationFactor(decreasingCalculationTimeFactor);
+    }
+
     #endregion
 
     #region GameOver methods
+
+    public void GameOver(bool stoppedTesting = false)
+    {
+        GameOver(currentPiece.tiles, stoppedTesting);
+    }
 
     /// <summary>
     /// Starts the game over coroutine
     /// </summary>
     /// <param name="lastPieceTiles"></param>
-    public void GameOver(TileBehaviour[] lastPieceTiles)
+    public void GameOver(TileBehaviour[] lastPieceTiles, bool stoppedTesting = false)
     {
-        StartCoroutine(GameOverCoroutine(lastPieceTiles));
+        StopAllCoroutines();
+
+        StartCoroutine(GameOverCoroutine(lastPieceTiles, stoppedTesting));
     }
 
     /// <summary>
@@ -544,9 +578,10 @@ public class TetrisBoardController : MonoBehaviour
     /// </summary>
     /// <param name="lastPieceTiles"></param>
     /// <returns></returns>
-    IEnumerator GameOverCoroutine(TileBehaviour[] lastPieceTiles)
+    IEnumerator GameOverCoroutine(TileBehaviour[] lastPieceTiles, bool stoppedTesting = false)
     {
         startedGame = false;
+        pausedGame = false;
         currentPiece = null;
 
         WaitForSeconds timeBetweenLineRemoving = new WaitForSeconds(0.02f);
@@ -581,11 +616,22 @@ public class TetrisBoardController : MonoBehaviour
             yield return timeBetweenLineRemoving;
         }
 
-        StopAllCoroutines();
+        StopAllCoroutines(); //????????
 
-        if (training) geneticAlgorithm.SetDataToLastGame(score, pieces, linesCleared, level);
-        if (testing) WriteTestingData();
-        InitializeGame();
+        if (playMode == PlayMode.Training) 
+        { 
+            geneticAlgorithm.SetDataFromLastGame(score, pieces, linesCleared, level);
+
+            InitializeGame();
+        }
+        else
+        {
+            if (playMode == PlayMode.Testing) WriteTestingData(stoppedTesting);
+
+            UIController.ResetButtons();
+            UIController.EnableBotSettings(true);
+            UIController.EnableWeightFields(true);
+        }
     }
 
     #endregion
@@ -620,8 +666,15 @@ public class TetrisBoardController : MonoBehaviour
                 break;
         }
 
-        //Waits the time for the initial action (MCTSBot and HumanizedBot will execute this action when they are created)
-        yield return new WaitForSeconds(initialActionTime);
+        float timer = 0.0f;
+
+        while(timer < initialActionTime)
+        {
+            if(!pausedGame)
+                timer += Time.deltaTime;
+
+            yield return null;
+        }
 
         //And starts the main loop
         while (startedGame)
@@ -674,10 +727,11 @@ public class TetrisBoardController : MonoBehaviour
             holesWeight = tetrisGeneration.bestWeights[0];
             bumpinessWeight = tetrisGeneration.bestWeights[1];
             linesWeight = tetrisGeneration.bestWeights[2];
-            rowHolesWeight = tetrisGeneration.bestWeights[3];
+            linesHolesWeight = tetrisGeneration.bestWeights[3];
             if(botVersion == BotVersion.HumanizedBot) humanizedWeight = tetrisGeneration.bestWeights[4];
 
             UpdateUIWeights();
+            UpdateUIGeneration(generation);
         }
     }
 
@@ -690,7 +744,7 @@ public class TetrisBoardController : MonoBehaviour
         holesWeight = weights[0];
         bumpinessWeight = weights[1];
         linesWeight = weights[2];
-        rowHolesWeight = weights[3];
+        linesHolesWeight = weights[3];
         if(weights.Length == 5) humanizedWeight = weights[4];
 
         UpdateUIWeights();
@@ -698,7 +752,7 @@ public class TetrisBoardController : MonoBehaviour
 
     #endregion
 
-    public void WriteTestingData()
+    public void WriteTestingData(bool stoppedTesting = false)
     {
         TestingData testingData = new TestingData();
         testingData.lines = linesCleared;
@@ -707,6 +761,8 @@ public class TetrisBoardController : MonoBehaviour
         testingData.pieces = pieces;
 
         testingData.lastCalculationTime = nextActionsTime;
+
+        testingData.stopped = stoppedTesting;
 
         LogWriter.WriteTesting(botVersion, testingData);
     }

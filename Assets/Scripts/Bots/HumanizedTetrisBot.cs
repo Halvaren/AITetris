@@ -10,7 +10,8 @@ using UnityEngine;
 /// </summary>
 public class HumanizedTetrisBot : TetrisBot
 {
-    float t0;
+    public float t0;
+    PieceAction bestAction;
 
     /// <summary>
     /// Main loop of the bot. It's based on the same method of TetrisBot, but with the add-on that checks if a Tetris can be played
@@ -20,15 +21,19 @@ public class HumanizedTetrisBot : TetrisBot
     /// <returns></returns>
     public override IEnumerator ActCoroutine(PieceType nextPieceType, float budget)
     {
+        t0 = 0.0f;
+        
         PieceModel nextPiece = new PieceModel(nextPieceType);
 
-        t0 = Time.time;
-
         List<PieceAction> possibleActions = currentTetrisState.GetActions(nextPiece);
-        PieceAction bestAction = null;
+        bestAction = null;
+
+        yield return null;
+
+        t0 += Time.deltaTime;
 
         //If the currentPiece is a I piece, the Tetris is checked since there is no possibility to make a Tetris with another type of piece
-        if(nextPieceType == PieceType.I) bestAction = CheckTetris(nextPiece, currentTetrisState, possibleActions, budget);
+        if (nextPieceType == PieceType.I) CheckTetris(nextPiece, currentTetrisState, possibleActions, budget);
 
         //If there is no possibility of Tetris, the same algorithm than TetrisBot is played
         if (bestAction == null)
@@ -37,25 +42,30 @@ public class HumanizedTetrisBot : TetrisBot
 
             int i = Random.Range(0, possibleActions.Count);
             int initialIndex = i;
-            while (Time.time - t0 < budget)
+            while (t0 < budget)
             {
-                TetrisState newState = currentTetrisState.CloneState();
-
-                newState.DoAction(nextPiece, possibleActions[i]);
-                nextPiece.ResetCoordinates();
-
-                float score = newState.GetHumanizedScore();
-
-                if (score > bestScore)
+                if (!TBController.pausedGame)
                 {
-                    bestScore = score;
-                    bestAction = possibleActions[i];
+                    t0 += Time.deltaTime;
+
+                    TetrisState newState = currentTetrisState.CloneState();
+
+                    newState.DoAction(nextPiece, possibleActions[i]);
+                    nextPiece.ResetCoordinates();
+
+                    float score = newState.GetHumanizedScore();
+
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestAction = possibleActions[i];
+                    }
+
+                    i++;
+
+                    if (i == possibleActions.Count) i = 0;
+                    if (i == initialIndex) break;
                 }
-
-                i++;
-
-                if (i == possibleActions.Count) i = 0;
-                if (i == initialIndex) break;
 
                 yield return null;
             }
@@ -66,7 +76,7 @@ public class HumanizedTetrisBot : TetrisBot
         if (bestAction == null) bestAction = currentTetrisState.GetRandomAction(nextPiece);
         currentTetrisState.DoAction(nextPiece, bestAction);
 
-        TetrisBoardController.Instance.DoActionByBot(bestAction);
+        TBController.DoActionByBot(bestAction);
     }
 
     /// <summary>
@@ -77,27 +87,33 @@ public class HumanizedTetrisBot : TetrisBot
     /// <param name="possibleActions"></param>
     /// <param name="budget"></param>
     /// <returns></returns>
-    protected PieceAction CheckTetris(PieceModel nextPiece, TetrisState currentTetrisState, List<PieceAction> possibleActions, float budget)
+    protected IEnumerator CheckTetris(PieceModel nextPiece, TetrisState currentTetrisState, List<PieceAction> possibleActions, float budget)
     {
         int i = 0;
-        while(Time.time - t0 < budget && i < possibleActions.Count)
+        while(t0 < budget && i < possibleActions.Count)
         {
-            PieceAction action = possibleActions[i];
-            if (action.rotationIndex == 0) //The I piece is horizontal, not vertical, so it can't be a Tetris
-            { 
-                i++; 
-                continue; 
+            if (!TBController.pausedGame)
+            {
+                t0 += Time.deltaTime;
+
+                PieceAction action = possibleActions[i];
+                if (action.rotationIndex == 0) //The I piece is horizontal, not vertical, so it can't be a Tetris
+                {
+                    i++;
+                    continue;
+                }
+
+                TetrisState newState = currentTetrisState.CloneState();
+
+                newState.DoAction(nextPiece, action);
+                nextPiece.ResetCoordinates();
+
+                if (newState.IsTetris()) bestAction = action;
+
+                i++;
             }
 
-            TetrisState newState = currentTetrisState.CloneState();
-
-            newState.DoAction(nextPiece, action);
-            nextPiece.ResetCoordinates();
-
-            if (newState.IsTetris()) return action;
-
-            i++;
+            yield return null;
         }
-        return null;
     }
 }

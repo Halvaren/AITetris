@@ -3,46 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.SocialPlatforms.Impl;
-using Assets.Scripts.GeneticAlgorithm;
-using Assets.Scripts;
 
 /// <summary>
 /// Every reading and writting operation on a log file is done by this class
 /// </summary>
-public class LogWriter : MonoBehaviour
+public static class LogWriter
 {
-    private static LogWriter instance;
-    public static LogWriter Instance
-    {
-        get
-        {
-            return instance;
-        }
-    }
+    static string MCTreeSearchLogFilePath = "Assets/Resources/MCTreeSearchLog.txt";
 
-    public string MCTreeSearchLogFilePath = "Assets/Resources/MCTreeSearchLog.txt";
+    static string BasicBotTestingLogFile = "Assets/Resources/BasicBotTestingLog.txt";
+    static string MCTSBotTestingLogFile = "Assets/Resources/MCTSBotTestingLog.txt";
+    static string HumanBotTestingLogFile = "Assets/Resources/HumanBotTestingLog.txt";
 
-    public string BasicBotTestingLogFile = "Assets/Resources/BasicBotTestingLog.txt";
-    public string MCTSBotTestingLogFile = "Assets/Resources/MCTSBotTestingLog.txt";
-    public string HumanBotTestingLogFile = "Assets/Resources/HumanBotTestingLog.txt";
-
-    public string BasicBotGensLogFile = "Assets/Resources/BasicBotGensLog.txt";
-    public string MCTSBotGensLogFile = "Assets/Resources/MCTSBotGensLogFile.txt";
-    public string HumanBotGensLogFile = "Assets/Resources/HumanBotGensLogFile.txt";
-
-    private void Awake()
-    {
-        instance = this;
-    }
+    static string BasicBotGensLogFile = "Assets/Resources/BasicBotGensLog.txt";
+    static string MCTSBotGensLogFile = "Assets/Resources/MCTSBotGensLogFile.txt";
+    static string HumanBotGensLogFile = "Assets/Resources/HumanBotGensLogFile.txt";
 
     #region MCTS methods
 
-    public void InitializeMCTreeSearchLog()
+    public static void InitializeMCTreeSearchLog()
     {
         File.WriteAllText(MCTreeSearchLogFilePath, "");
     }
 
-    public void WriteMCTreeSearch(string text)
+    public static void WriteMCTreeSearch(string text)
     {
         File.AppendAllText(MCTreeSearchLogFilePath, text + "\n");
     }
@@ -51,7 +35,7 @@ public class LogWriter : MonoBehaviour
 
     #region Genetic algorithm methods
 
-    public TetrisGeneration[] ReadGenerationsArray(BotVersion botVersion, string path = null)
+    public static TetrisGeneration[] ReadGenerationsArray(BotVersion botVersion, string path = null)
     {
         if(path == null) path = GetBotVersionGensLogFilePath(botVersion);
 
@@ -65,7 +49,7 @@ public class LogWriter : MonoBehaviour
         return JsonHelper.FromJsonArray<TetrisGeneration>(json);
     }
 
-    public List<TetrisGeneration> ReadGenerationsList(BotVersion botVersion, string path = null)
+    public static List<TetrisGeneration> ReadGenerationsList(BotVersion botVersion, string path = null)
     {
         if (path == null) path = GetBotVersionGensLogFilePath(botVersion);
 
@@ -79,7 +63,7 @@ public class LogWriter : MonoBehaviour
         return JsonHelper.FromJsonList<TetrisGeneration>(json);
     }
 
-    public TetrisGeneration GetGeneration(BotVersion botVersion, int index)
+    public static TetrisGeneration GetGeneration(BotVersion botVersion, int index)
     {
         TetrisGeneration[] tetrisGenerations = ReadGenerationsArray(botVersion);
 
@@ -92,7 +76,7 @@ public class LogWriter : MonoBehaviour
         return tetrisGenerations[index];
     }
 
-    public void WriteGeneration(BotVersion botVersion, TetrisGeneration tetrisGeneration)
+    public static void WriteGeneration(BotVersion botVersion, TetrisGeneration tetrisGeneration)
     {
         string path = GetBotVersionGensLogFilePath(botVersion);
 
@@ -117,7 +101,7 @@ public class LogWriter : MonoBehaviour
         }
     }
 
-    public void WriteTesting(BotVersion botVersion, TestingData data)
+    public static void WriteTesting(BotVersion botVersion, TestingData data)
     {
         string path = GetBotVersionTestingLogFilePath(botVersion);
 
@@ -126,7 +110,7 @@ public class LogWriter : MonoBehaviour
         File.AppendAllText(path, json);
     }
 
-    private string GetBotVersionGensLogFilePath(BotVersion botVersion)
+    private static string GetBotVersionGensLogFilePath(BotVersion botVersion)
     {
         switch (botVersion)
         {
@@ -142,7 +126,7 @@ public class LogWriter : MonoBehaviour
         return "";
     }
 
-    private string GetBotVersionTestingLogFilePath(BotVersion botVersion)
+    private static string GetBotVersionTestingLogFilePath(BotVersion botVersion)
     {
         switch (botVersion)
         {

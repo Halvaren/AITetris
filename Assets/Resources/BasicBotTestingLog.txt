@@ -94,4 +94,34 @@
     "lines": 54,
     "pieces": 177,
     "lastCalculationTime": 0.7499999403953552
+}{
+    "score": 234700,
+    "level": 21,
+    "lines": 201,
+    "pieces": 533,
+    "lastCalculationTime": -1.564621925354004e-7
+}{
+    "score": 247800,
+    "level": 21,
+    "lines": 201,
+    "pieces": 533,
+    "lastCalculationTime": -1.564621925354004e-7
+}{
+    "score": 62300,
+    "level": 11,
+    "lines": 104,
+    "pieces": 269,
+    "lastCalculationTime": 0.49999988079071047
+}{
+    "score": 100,
+    "level": 1,
+    "lines": 1,
+    "pieces": 6,
+    "lastCalculationTime": 1.0
+}{
+    "score": 227300,
+    "level": 20,
+    "lines": 193,
+    "pieces": 509,
+    "lastCalculationTime": 0.049999844282865527
 }

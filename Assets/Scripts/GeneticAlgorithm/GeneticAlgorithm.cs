@@ -25,13 +25,23 @@ namespace Assets.Scripts.GeneticAlgorithm
 
         public BotVersion botVersion; //BotVersion that is being training
 
+        private TetrisBoardController tbController;
+        public TetrisBoardController TBController
+        {
+            get
+            {
+                if (tbController == null) tbController = TetrisBoardController.Instance;
+                return tbController;
+            }
+        }
+
         public GeneticAlgorithm(int populationSize, int dnaSize, float mutationRate, BotVersion botVersion)
         {
             nextGame = 0;
             scoreSum = 0;
             generation = 1;
 
-            TetrisBoardController.Instance.UpdateUIGeneration(generation);
+            TBController.UpdateUIGeneration(generation);
 
             this.mutationRate = mutationRate;
             this.botVersion = botVersion;
@@ -79,7 +89,7 @@ namespace Assets.Scripts.GeneticAlgorithm
             population = newPopulation;
 
             generation++;
-            TetrisBoardController.Instance.UpdateUIGeneration(generation);
+            TBController.UpdateUIGeneration(generation);
 
             nextGame = 0;
 
@@ -94,7 +104,7 @@ namespace Assets.Scripts.GeneticAlgorithm
         }
 
         //When a game ends, the TetrisBoardController sends data about this game. The most important one, the score
-        public void SetDataToLastGame(float score, int pieces, int lines, int level)
+        public void SetDataFromLastGame(float score, int pieces, int lines, int level)
         {
             population[nextGame].SetScore(score);
             population[nextGame].SetPieces(pieces);
@@ -124,15 +134,18 @@ namespace Assets.Scripts.GeneticAlgorithm
         public TetrisDNA ChooseParent()
         {
             double randomNumber = Random.value * scoreSum;
+            float partialScore = 0;
 
             for(int i = 0; i < population.Count; i++)
             {
-                if(randomNumber < population[i].GetScore())
+                if(randomNumber <= population[i].GetScore() + partialScore)
                 {
                     return population[i];
                 }
-
-                randomNumber -= population[i].GetScore();
+                else
+                {
+                    partialScore += population[i].GetScore();
+                }
             }
 
             return null;
@@ -152,7 +165,7 @@ namespace Assets.Scripts.GeneticAlgorithm
             currentGeneration.level = best.GetLevel();
             currentGeneration.lines = best.GetLines();
 
-            LogWriter.Instance.WriteGeneration(botVersion, currentGeneration);
+            LogWriter.WriteGeneration(botVersion, currentGeneration);
         }
     }
 }

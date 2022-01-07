@@ -234,7 +234,7 @@ public class TetrisState
     {
         return -(TetrisBoardController.Instance.holesWeight * GetHoleCount())
             - (TetrisBoardController.Instance.bumpinessWeight * GetBumpiness())
-            - (TetrisBoardController.Instance.rowHolesWeight * GetRowsWithHoles())
+            - (TetrisBoardController.Instance.linesHolesWeight * GetRowsWithHoles())
             + (TetrisBoardController.Instance.linesWeight * GetClearedLines());
     }
 

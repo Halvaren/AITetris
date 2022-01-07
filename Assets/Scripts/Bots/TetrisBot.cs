@@ -45,9 +45,9 @@ public class TetrisBot
     /// <returns></returns>
     public virtual IEnumerator ActCoroutine(PieceType nextPieceType, float budget)
     {
-        PieceModel nextPiece = new PieceModel(nextPieceType);
+        float t0 = 0.0f;
 
-        float t0 = Time.time;
+        PieceModel nextPiece = new PieceModel(nextPieceType);
 
         List<PieceAction> possibleActions; //First of all, it gets the possible actions with the current piece in the current state
         if (!pieceActionDictionary.ContainsKey(nextPieceType))
@@ -65,28 +65,35 @@ public class TetrisBot
 
         bestAction = possibleActions[i];
 
-        Debug.Log("possible actions " + possibleActions.Count);
+        yield return null;
+
+        t0 += Time.deltaTime;
+
         //In a while loop that goes until the time ends
-        while (Time.time - t0 < budget && i < possibleActions.Count)
+        while (t0 < budget && i < possibleActions.Count)
         {
-            Debug.Log("action " + i);
-            TetrisState newState = currentTetrisState.CloneState(); //The TetrisState is cloned
-
-            newState.DoAction(nextPiece, possibleActions[i]); //One of the possible actions is played in the cloned state
-            nextPiece.ResetCoordinates();
-
-            float score = newState.GetScore(); //And its score is got
-
-            if(score > bestScore)
+            if (!TBController.pausedGame)
             {
-                bestScore = score;
-                bestAction = possibleActions[i];
+                t0 += Time.deltaTime;
+
+                TetrisState newState = currentTetrisState.CloneState(); //The TetrisState is cloned
+
+                newState.DoAction(nextPiece, possibleActions[i]); //One of the possible actions is played in the cloned state
+                nextPiece.ResetCoordinates();
+
+                float score = newState.GetScore(); //And its score is got
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestAction = possibleActions[i];
+                }
+
+                i++;
+
+                if (i == possibleActions.Count) i = 0;
+                if (i == initialIndex) break; //If all the possible actions have been tested, the while loop ends
             }
-
-            i++;
-
-            if (i == possibleActions.Count) i = 0;
-            if (i == initialIndex) break; //If all the possible actions have been tested, the while loop ends
 
             yield return null;
         }
